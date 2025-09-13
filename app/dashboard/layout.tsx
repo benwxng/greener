@@ -60,7 +60,7 @@ export default function DashboardLayout({
         <aside
           className={`${
             sidebarCollapsed ? "w-24" : "w-64"
-          } transition-all duration-300 ease-in-out flex-shrink-0 relative h-screen ml-4 mb-4`}
+          } transition-all duration-300 ease-in-out flex-shrink-0 relative h-screen ml-2`}
         >
           {/* Sidebar Content */}
           <div className="h-full p-4">
@@ -182,7 +182,7 @@ export default function DashboardLayout({
 
         {/* Main Content */}
         <main className="flex-1 overflow-y-auto overflow-x-hidden h-screen min-w-0">
-          <div className="w-full max-w-none p-6 ml-4">{children}</div>
+          <div className="w-full max-w-none p-6">{children}</div>
         </main>
 
         {/* Mobile Sidebar Overlay */}
