@@ -176,7 +176,7 @@ export default function ProfilePage() {
             <span>Monthly Goals</span>
           </CardTitle>
           <CardDescription>
-            Track your progress towards this month's sustainability targets
+            Track your progress towards this month&apos;s sustainability targets
           </CardDescription>
         </CardHeader>
         <CardContent>

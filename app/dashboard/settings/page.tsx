@@ -20,7 +20,6 @@ import {
   CreditCard,
   Target,
   Smartphone,
-  Mail,
   Globe,
   Save,
 } from "lucide-react";
