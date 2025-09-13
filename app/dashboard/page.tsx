@@ -1,5 +1,6 @@
 "use client";
 
+import React, { useMemo } from "react";
 import {
   Card,
   CardContent,
@@ -18,6 +19,11 @@ import {
   Calendar,
   DollarSign,
   Award,
+  Smartphone,
+  Shirt,
+  Home,
+  Heart,
+  Package,
 } from "lucide-react";
 import {
   LineChart,
@@ -30,62 +36,42 @@ import {
   BarChart,
   Bar,
 } from "recharts";
+import { amazonPurchases } from "@/lib/amazon-data-transformer";
 
-// Mock data for charts
-const carbonTrendData = [
-  { month: "Jan", emissions: 12.5, target: 10 },
-  { month: "Feb", emissions: 11.2, target: 10 },
-  { month: "Mar", emissions: 9.8, target: 10 },
-  { month: "Apr", emissions: 8.5, target: 10 },
-  { month: "May", emissions: 7.9, target: 10 },
-  { month: "Jun", emissions: 7.2, target: 10 },
-];
+// Memoized Category Icon Component
+const CategoryIcon = React.memo(({ category }: { category: string }) => {
+  const iconProps = { className: "h-8 w-8 text-muted-foreground" };
 
-const categoryData = [
-  { category: "Fashion", emissions: 2.1, percentage: 29 },
-  { category: "Electronics", emissions: 1.8, percentage: 25 },
-  { category: "Food", emissions: 1.2, percentage: 17 },
-  { category: "Transport", emissions: 1.1, percentage: 15 },
-  { category: "Other", emissions: 1.0, percentage: 14 },
-];
+  switch (category) {
+    case "Electronics":
+      return <Smartphone {...iconProps} />;
+    case "Fashion":
+      return <Shirt {...iconProps} />;
+    case "Health & Personal Care":
+      return <Heart {...iconProps} />;
+    case "Home & Garden":
+      return <Home {...iconProps} />;
+    default:
+      return <Package {...iconProps} />;
+  }
+});
 
-const recentPurchases = [
-  {
-    id: 1,
-    item: "Organic Cotton T-Shirt",
-    store: "EcoWear",
-    amount: 35.99,
-    carbonScore: 2.1,
-    date: "2 days ago",
-    alternatives: 3,
-  },
-  {
-    id: 2,
-    item: "Smartphone Charger",
-    store: "TechStore",
-    amount: 19.99,
-    carbonScore: 5.8,
-    date: "5 days ago",
-    alternatives: 5,
-  },
-  {
-    id: 3,
-    item: "Coffee Beans",
-    store: "Local Roastery",
-    amount: 12.5,
-    carbonScore: 1.2,
-    date: "1 week ago",
-    alternatives: 2,
-  },
-];
+CategoryIcon.displayName = "CategoryIcon";
 
-function getCarbonScoreColor(score: number) {
-  if (score <= 2) return "text-green-600";
-  if (score <= 4) return "text-yellow-600";
-  return "text-red-600";
+// Function to get category-based background color
+function getCategoryImageBackground(category: string) {
+  const backgrounds = {
+    Electronics: "bg-blue-100",
+    Fashion: "bg-purple-100",
+    "Health & Personal Care": "bg-pink-100",
+    "Home & Garden": "bg-green-100",
+    Other: "bg-gray-100",
+  };
+  return backgrounds[category as keyof typeof backgrounds] || backgrounds.Other;
 }
 
-function getCarbonScoreBadge(score: number) {
+// Memoized Carbon Score Badge Component
+const CarbonScoreBadge = React.memo(({ score }: { score: number }) => {
   if (score <= 2)
     return (
       <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
@@ -103,14 +89,127 @@ function getCarbonScoreBadge(score: number) {
       High Impact
     </Badge>
   );
+});
+
+CarbonScoreBadge.displayName = "CarbonScoreBadge";
+
+// Memoized Chart Components
+const CarbonTrendChart = React.memo(
+  ({
+    data,
+  }: {
+    data: Array<{ month: string; emissions: number; target: number }>;
+  }) => (
+    <ResponsiveContainer width="100%" height={300}>
+      <LineChart data={data}>
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis dataKey="month" />
+        <YAxis />
+        <Tooltip />
+        <Line
+          type="monotone"
+          dataKey="emissions"
+          stroke="#ef4444"
+          strokeWidth={2}
+          name="Actual Emissions"
+        />
+        <Line
+          type="monotone"
+          dataKey="target"
+          stroke="#22c55e"
+          strokeDasharray="5 5"
+          name="Target"
+        />
+      </LineChart>
+    </ResponsiveContainer>
+  )
+);
+
+CarbonTrendChart.displayName = "CarbonTrendChart";
+
+const CategoryChart = React.memo(
+  ({
+    data,
+  }: {
+    data: Array<{ category: string; emissions: number; percentage: number }>;
+  }) => (
+    <ResponsiveContainer width="100%" height={300}>
+      <BarChart data={data}>
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis dataKey="category" />
+        <YAxis />
+        <Tooltip />
+        <Bar dataKey="emissions" fill="#ef4444" />
+      </BarChart>
+    </ResponsiveContainer>
+  )
+);
+
+CategoryChart.displayName = "CategoryChart";
+
+function getCarbonScoreColor(score: number) {
+  if (score <= 2) return "text-green-600";
+  if (score <= 4) return "text-yellow-600";
+  return "text-red-600";
 }
 
 export default function DashboardPage() {
-  const currentScore = 7.2;
+  // Memoize expensive calculations
+  const metrics = useMemo(() => {
+    const purchases = amazonPurchases;
+    const totalSpent = purchases.reduce((sum, p) => sum + p.amount, 0);
+    const totalEmissions = purchases.reduce((sum, p) => sum + p.carbonScore, 0);
+    const currentScore = totalEmissions;
+
+    // Group by category for category data
+    const categoryTotals: {
+      [key: string]: { emissions: number; count: number };
+    } = {};
+    purchases.forEach((p) => {
+      if (!categoryTotals[p.category]) {
+        categoryTotals[p.category] = { emissions: 0, count: 0 };
+      }
+      categoryTotals[p.category].emissions += p.carbonScore;
+      categoryTotals[p.category].count += 1;
+    });
+
+    const categoryData = Object.entries(categoryTotals)
+      .map(([category, data]) => ({
+        category,
+        emissions: Math.round(data.emissions * 10) / 10,
+        percentage: Math.round((data.emissions / totalEmissions) * 100),
+      }))
+      .sort((a, b) => b.emissions - a.emissions);
+
+    // Generate trend data (mock for now, but based on real total)
+    const carbonTrendData = [
+      { month: "Jan", emissions: currentScore * 1.2, target: 10 },
+      { month: "Feb", emissions: currentScore * 1.1, target: 10 },
+      { month: "Mar", emissions: currentScore * 1.05, target: 10 },
+      { month: "Apr", emissions: currentScore * 1.02, target: 10 },
+      { month: "May", emissions: currentScore * 1.01, target: 10 },
+      { month: "Jun", emissions: currentScore, target: 10 },
+    ];
+
+    // Get recent purchases (last 3)
+    const recentPurchases = purchases.slice(0, 3);
+
+    return {
+      currentScore: Math.round(currentScore * 10) / 10,
+      totalSpent: Math.round(totalSpent * 100) / 100,
+      totalPurchases: purchases.length,
+      categoryData,
+      carbonTrendData,
+      recentPurchases,
+    };
+  }, []); // Empty dependency array since amazonPurchases is static
+
   const monthlyTarget = 10.0;
   const improvement = -0.8; // negative means improvement
-  const progressToTarget =
-    ((monthlyTarget - currentScore) / monthlyTarget) * 100;
+  const progressToTarget = useMemo(
+    () => ((monthlyTarget - metrics.currentScore) / monthlyTarget) * 100,
+    [metrics.currentScore]
+  );
 
   return (
     <div className="space-y-6">
@@ -118,7 +217,7 @@ export default function DashboardPage() {
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Welcome back!</h1>
         <p className="text-muted-foreground">
-          Here&apos;s your carbon footprint overview for this month.
+          Here's your carbon footprint overview based on your Amazon purchases.
         </p>
       </div>
 
@@ -130,11 +229,11 @@ export default function DashboardPage() {
             <Leaf className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{currentScore}</div>
+            <div className="text-2xl font-bold">{metrics.currentScore}</div>
             <p className="text-xs text-muted-foreground">
               <span className="flex items-center">
                 <TrendingDown className="h-3 w-3 text-green-600 mr-1" />
-                {Math.abs(improvement)} from last month
+                {Math.abs(improvement)} kg CO₂
               </span>
             </p>
           </CardContent>
@@ -150,10 +249,10 @@ export default function DashboardPage() {
           <CardContent>
             <div className="text-2xl font-bold">{monthlyTarget}</div>
             <div className="mt-2">
-              <Progress value={progressToTarget} className="h-2" />
+              <Progress value={Math.max(0, progressToTarget)} className="h-2" />
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              {Math.round(progressToTarget)}% to target
+              {Math.round(Math.max(0, progressToTarget))}% to target
             </p>
           </CardContent>
         </Card>
@@ -164,11 +263,11 @@ export default function DashboardPage() {
             <ShoppingCart className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">24</div>
+            <div className="text-2xl font-bold">{metrics.totalPurchases}</div>
             <p className="text-xs text-muted-foreground">
               <span className="flex items-center">
                 <Calendar className="h-3 w-3 mr-1" />
-                This month
+                From Amazon
               </span>
             </p>
           </CardContent>
@@ -176,15 +275,15 @@ export default function DashboardPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Savings</CardTitle>
+            <CardTitle className="text-sm font-medium">Total Spent</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">$127</div>
+            <div className="text-2xl font-bold">${metrics.totalSpent}</div>
             <p className="text-xs text-muted-foreground">
               <span className="flex items-center">
                 <Award className="h-3 w-3 text-green-600 mr-1" />
-                From better choices
+                On tracked purchases
               </span>
             </p>
           </CardContent>
@@ -201,28 +300,7 @@ export default function DashboardPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={carbonTrendData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip />
-                <Line
-                  type="monotone"
-                  dataKey="emissions"
-                  stroke="#ef4444"
-                  strokeWidth={2}
-                  name="Actual Emissions"
-                />
-                <Line
-                  type="monotone"
-                  dataKey="target"
-                  stroke="#22c55e"
-                  strokeDasharray="5 5"
-                  name="Target"
-                />
-              </LineChart>
-            </ResponsiveContainer>
+            <CarbonTrendChart data={metrics.carbonTrendData} />
           </CardContent>
         </Card>
 
@@ -234,15 +312,7 @@ export default function DashboardPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={categoryData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="category" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="emissions" fill="#ef4444" />
-              </BarChart>
-            </ResponsiveContainer>
+            <CategoryChart data={metrics.categoryData} />
           </CardContent>
         </Card>
       </div>
@@ -257,34 +327,49 @@ export default function DashboardPage() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {recentPurchases.map((purchase) => (
+            {metrics.recentPurchases.map((purchase) => (
               <div
                 key={purchase.id}
-                className="flex items-center justify-between p-4 border rounded-lg"
+                className="flex items-center justify-between p-4 border rounded-lg transition-colors duration-150 hover:bg-accent/50"
               >
-                <div className="flex-1">
-                  <div className="flex items-center space-x-4">
-                    <div className="flex-1">
-                      <h4 className="font-medium">{purchase.item}</h4>
-                      <p className="text-sm text-muted-foreground">
-                        {purchase.store} • {purchase.date}
-                      </p>
+                <div className="flex items-center space-x-4 flex-1">
+                  {/* Product Image */}
+                  <div
+                    className={`w-16 h-16 rounded-lg flex items-center justify-center ${getCategoryImageBackground(
+                      purchase.category
+                    )}`}
+                  >
+                    <CategoryIcon category={purchase.category} />
+                  </div>
+
+                  {/* Product Info */}
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-2">
+                      <h4 className="font-medium line-clamp-1">
+                        {purchase.item}
+                      </h4>
                     </div>
-                    <div className="text-right">
-                      <p className="font-medium">${purchase.amount}</p>
-                      <div className="flex items-center space-x-2">
-                        <span
-                          className={`text-sm font-medium ${getCarbonScoreColor(
-                            purchase.carbonScore
-                          )}`}
-                        >
-                          {purchase.carbonScore} kg CO₂
-                        </span>
-                        {getCarbonScoreBadge(purchase.carbonScore)}
-                      </div>
+                    <p className="text-sm text-muted-foreground">
+                      {purchase.store} •{" "}
+                      {new Date(purchase.date).toLocaleDateString()}
+                    </p>
+                    <div className="flex items-center space-x-2 mt-1">
+                      <span className="text-sm font-medium">
+                        ${purchase.amount}
+                      </span>
+                      <span
+                        className={`text-sm font-medium ${getCarbonScoreColor(
+                          purchase.carbonScore
+                        )}`}
+                      >
+                        {purchase.carbonScore} kg CO₂
+                      </span>
+                      <CarbonScoreBadge score={purchase.carbonScore} />
                     </div>
                   </div>
                 </div>
+
+                {/* Actions */}
                 <div className="ml-4">
                   <Button variant="outline" size="sm">
                     {purchase.alternatives} Alternatives

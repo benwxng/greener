@@ -1,5 +1,6 @@
 // Types for the Greener app
 
+// Existing types (for backward compatibility with current UI)
 export interface Purchase {
   id: number;
   item: string;
@@ -76,6 +77,79 @@ export interface MonthlyGoals {
   carbonReduction: Goal;
   sustainablePurchases: Goal;
   savings: Goal;
+}
+
+// Database schema types (matching Supabase tables)
+export interface User {
+  id: string;
+  external_user_id: string;
+  created_at: string;
+}
+
+export interface MerchantAccount {
+  id: string;
+  user_id: string;
+  merchant_id: string;
+  status: string;
+  created_at: string;
+}
+
+export interface Transaction {
+  id: string;
+  user_id: string;
+  merchant_account_id: string;
+  knot_transaction_id: string;
+  order_datetime: string;
+  total_amount: number;
+  currency: string;
+  status: string;
+  raw_json: any;
+  created_at: string;
+}
+
+export interface TransactionProduct {
+  id: string;
+  transaction_id: string;
+  external_id: string;
+  name: string;
+  quantity: number;
+  unit_price: number;
+  total: number;
+  url: string;
+  category?: string;
+  auto_categorized?: boolean;
+  created_at: string;
+}
+
+export interface EmissionsEstimate {
+  id: string;
+  product_id: string;
+  factor_source: string;
+  factor_id: string;
+  method: "pcf" | "category" | "spend";
+  estimated_co2e_kg: number;
+  confidence: number;
+  created_at: string;
+}
+
+export interface ProductAlternative {
+  id: string;
+  product_id: string;
+  alt_name: string;
+  alt_url: string;
+  co2e_kg: number;
+  savings_percent: number;
+  created_at: string;
+}
+
+export interface UserPreferences {
+  id: string;
+  user_id: string;
+  monthly_carbon_target: number;
+  currency: string;
+  notifications_enabled: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
 // API Response types for future integration

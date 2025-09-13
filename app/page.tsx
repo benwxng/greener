@@ -1,6 +1,6 @@
 import { DeployButton } from "@/components/deploy-button";
 import { EnvVarWarning } from "@/components/env-var-warning";
-import { AuthButton } from "@/components/auth-button";
+import { AuthButtonServer } from "@/components/auth-button-server";
 import { Hero } from "@/components/hero";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import { hasEnvVars } from "@/lib/utils";
@@ -29,7 +29,7 @@ export default async function Home() {
                 <DeployButton />
               </div>
             </div>
-            {!hasEnvVars ? <EnvVarWarning /> : <AuthButton />}
+            {!hasEnvVars ? <EnvVarWarning /> : <AuthButtonServer />}
           </div>
         </nav>
         <div className="flex-1 flex flex-col gap-20 max-w-5xl p-5">
