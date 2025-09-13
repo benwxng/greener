@@ -1,10 +1,7 @@
-<a href="https://demo-nextjs-with-supabase.vercel.app/">
-  <img alt="Next.js and Supabase Starter Kit - the fastest way to build apps with Next.js and Supabase" src="https://demo-nextjs-with-supabase.vercel.app/opengraph-image.png">
-  <h1 align="center">Next.js and Supabase Starter Kit</h1>
-</a>
+<h1 align="center">🌱 Greener - Carbon Footprint Tracker</h1>
 
 <p align="center">
- The fastest way to build apps with Next.js and Supabase
+ Track your carbon emissions and discover sustainable alternatives for every purchase
 </p>
 
 <p align="center">
@@ -19,23 +16,74 @@
 
 ## Features
 
-- Works across the entire [Next.js](https://nextjs.org) stack
-  - App Router
-  - Pages Router
-  - Middleware
-  - Client
-  - Server
-  - It just works!
-- supabase-ssr. A package to configure Supabase Auth to use cookies
-- Password-based authentication block installed via the [Supabase UI Library](https://supabase.com/ui/docs/nextjs/password-based-auth)
-- Styling with [Tailwind CSS](https://tailwindcss.com)
-- Components with [shadcn/ui](https://ui.shadcn.com/)
-- Optional deployment with [Supabase Vercel Integration and Vercel deploy](#deploy-your-own)
-  - Environment variables automatically assigned to Vercel project
+### 🛍️ Purchase Tracking
 
-## Demo
+- **Transaction Monitoring**: Integrates with Knot Transaction API to track all purchases
+- **Carbon Score Analysis**: Uses LLM to estimate carbon emissions for each item bought
+- **Category Classification**: Automatically categorizes purchases (Fashion, Electronics, Food, etc.)
+- **Purchase History**: Comprehensive view of all transactions with carbon impact
 
-You can view a fully working demo at [demo-nextjs-with-supabase.vercel.app](https://demo-nextjs-with-supabase.vercel.app/).
+### 📊 Dashboard & Analytics
+
+- **Carbon Footprint Overview**: Real-time tracking of your monthly carbon emissions
+- **Progress Visualization**: Charts showing emissions trends and category breakdowns
+- **Goal Setting**: Set and track monthly carbon reduction targets
+- **Impact Metrics**: Track savings and environmental improvements over time
+
+### 💡 Smart Recommendations
+
+- **AI-Powered Alternatives**: LLM-generated sustainable product recommendations
+- **Amazon Affiliate Integration**: Direct links to eco-friendly alternatives
+- **Comparison Tool**: Side-by-side comparison of carbon footprint and pricing
+- **Sustainability Scoring**: Rate products based on environmental impact
+
+### 🏆 Gamification
+
+- **Achievement System**: Earn badges for sustainable shopping milestones
+- **Streak Tracking**: Monitor consecutive days of eco-friendly purchases
+- **Monthly Challenges**: Carbon reduction goals and sustainable purchase targets
+
+### 🔧 Technical Features
+
+- **Next.js 15** with App Router
+- **Supabase Authentication** with secure user management
+- **Responsive Design** with Tailwind CSS
+- **Modern UI Components** with shadcn/ui
+- **Real-time Data Visualization** with Recharts
+- **TypeScript** for type safety
+
+## How It Works
+
+### 1. Purchase Tracking
+
+The app connects to your bank account via the Knot Transaction API to automatically track all purchases in real-time.
+
+### 2. Carbon Analysis
+
+For each purchase, an LLM (GPT/Gemini/Perplexity) analyzes the product and estimates its carbon footprint based on:
+
+- Product type and materials
+- Manufacturing location and processes
+- Transportation and packaging
+- Industry-standard carbon emission data
+
+### 3. Scoring System
+
+Each purchase receives an arbitrary carbon score (1-10 scale):
+
+- **1-2**: Low impact (sustainable choices)
+- **3-4**: Medium impact (could be improved)
+- **5-10**: High impact (needs alternatives)
+
+### 4. Recommendations
+
+The AI searches for better alternatives using:
+
+- Product databases
+- Amazon affiliate links
+- Sustainability ratings
+- Price comparisons
+- Carbon footprint analysis
 
 ## Deploy to Vercel
 
