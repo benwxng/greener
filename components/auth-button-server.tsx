@@ -1,20 +1,19 @@
-"use client";
-
 import Link from "next/link";
 import { Button } from "./ui/button";
-import { useAuth } from "@/lib/hooks/useAuth";
+import { createClient } from "@/lib/supabase/server";
 import { LogoutButton } from "./logout-button";
 
-export function AuthButton() {
-  const { user, loading } = useAuth();
+export async function AuthButtonServer() {
+  const supabase = await createClient();
 
-  if (loading) {
-    return <div className="w-full h-8 bg-muted animate-pulse rounded-md"></div>;
-  }
+  // You can also use getUser() which will be slower.
+  const { data } = await supabase.auth.getClaims();
+
+  const user = data?.claims;
 
   return user ? (
-    <div className="space-y-2">
-      <div className="text-xs text-muted-foreground truncate">{user.email}</div>
+    <div className="flex items-center gap-4">
+      Hey, {user.email}!
       <LogoutButton />
     </div>
   ) : (

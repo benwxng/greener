@@ -20,83 +20,43 @@ import {
   ExternalLink,
   TrendingUp,
   TrendingDown,
+  Smartphone,
+  Shirt,
+  Home,
+  Heart,
+  Package,
 } from "lucide-react";
+import { amazonPurchases } from "@/lib/amazon-data-transformer";
 
-// Mock purchase data
-const purchases = [
-  {
-    id: 1,
-    item: "Organic Cotton T-Shirt",
-    store: "EcoWear",
-    category: "Fashion",
-    amount: 35.99,
-    carbonScore: 2.1,
-    date: "2024-01-15",
-    description: "100% organic cotton, sustainably sourced",
-    alternatives: 3,
-    image: "/api/placeholder/60/60",
-  },
-  {
-    id: 2,
-    item: "iPhone 15 Pro",
-    store: "Apple Store",
-    category: "Electronics",
-    amount: 999.99,
-    carbonScore: 8.7,
-    date: "2024-01-12",
-    description: "Latest smartphone with advanced features",
-    alternatives: 5,
-    image: "/api/placeholder/60/60",
-  },
-  {
-    id: 3,
-    item: "Fair Trade Coffee Beans",
-    store: "Local Roastery",
-    category: "Food",
-    amount: 12.5,
-    carbonScore: 1.2,
-    date: "2024-01-10",
-    description: "Ethiopian single origin, fair trade certified",
-    alternatives: 2,
-    image: "/api/placeholder/60/60",
-  },
-  {
-    id: 4,
-    item: "Running Shoes",
-    store: "Nike",
-    category: "Fashion",
-    amount: 129.99,
-    carbonScore: 6.4,
-    date: "2024-01-08",
-    description: "Air Max series with recycled materials",
-    alternatives: 4,
-    image: "/api/placeholder/60/60",
-  },
-  {
-    id: 5,
-    item: "Laptop Stand",
-    store: "Amazon",
-    category: "Electronics",
-    amount: 49.99,
-    carbonScore: 3.2,
-    date: "2024-01-05",
-    description: "Aluminum laptop stand with adjustable height",
-    alternatives: 6,
-    image: "/api/placeholder/60/60",
-  },
-  {
-    id: 6,
-    item: "Wireless Headphones",
-    store: "Sony",
-    category: "Electronics",
-    amount: 199.99,
-    carbonScore: 4.8,
-    date: "2024-01-03",
-    description: "Noise-cancelling wireless headphones",
-    alternatives: 7,
-    image: "/api/placeholder/60/60",
-  },
-];
+// Function to get category icon
+function getCategoryIcon(category: string) {
+  const iconProps = { className: "h-8 w-8 text-muted-foreground" };
+
+  switch (category) {
+    case "Electronics":
+      return <Smartphone {...iconProps} />;
+    case "Fashion":
+      return <Shirt {...iconProps} />;
+    case "Health & Personal Care":
+      return <Heart {...iconProps} />;
+    case "Home & Garden":
+      return <Home {...iconProps} />;
+    default:
+      return <Package {...iconProps} />;
+  }
+}
+
+// Function to get category-based background color
+function getCategoryImageBackground(category: string) {
+  const backgrounds = {
+    Electronics: "bg-blue-100",
+    Fashion: "bg-purple-100",
+    "Health & Personal Care": "bg-pink-100",
+    "Home & Garden": "bg-green-100",
+    Other: "bg-gray-100",
+  };
+  return backgrounds[category as keyof typeof backgrounds] || backgrounds.Other;
+}
 
 function getCarbonScoreColor(score: number) {
   if (score <= 2) return "text-green-600";
@@ -130,8 +90,10 @@ function getCategoryColor(category: string) {
       "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300",
     Electronics:
       "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
-    Food: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300",
-    Transport: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
+    "Health & Personal Care":
+      "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300",
+    "Home & Garden":
+      "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
     Other: "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300",
   };
   return colors[category] || colors.Other;
@@ -140,6 +102,9 @@ function getCategoryColor(category: string) {
 export default function PurchasesPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
+
+  // Use real Amazon purchase data
+  const purchases = amazonPurchases;
 
   const categories = [
     "All",
@@ -165,7 +130,7 @@ export default function PurchasesPage() {
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Purchase History</h1>
         <p className="text-muted-foreground">
-          Track your purchases and their environmental impact
+          Track your Amazon purchases and their environmental impact
         </p>
       </div>
 
@@ -179,7 +144,7 @@ export default function PurchasesPage() {
           <CardContent>
             <div className="text-2xl font-bold">${totalSpent.toFixed(2)}</div>
             <p className="text-xs text-muted-foreground">
-              {purchases.length} purchases this month
+              {purchases.length} purchases from Amazon
             </p>
           </CardContent>
         </Card>
@@ -206,9 +171,7 @@ export default function PurchasesPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{averageScore.toFixed(1)}</div>
-            <p className="text-xs text-muted-foreground">
-              <span className="text-green-600">↓ 12%</span> vs last month
-            </p>
+            <p className="text-xs text-muted-foreground">kg CO₂ per purchase</p>
           </CardContent>
         </Card>
       </div>
@@ -231,7 +194,7 @@ export default function PurchasesPage() {
                 />
               </div>
             </div>
-            <div className="flex space-x-2">
+            <div className="flex space-x-2 flex-wrap">
               {categories.map((category) => (
                 <Button
                   key={category}
@@ -240,6 +203,7 @@ export default function PurchasesPage() {
                   }
                   size="sm"
                   onClick={() => setSelectedCategory(category)}
+                  className="mb-2"
                 >
                   {category}
                 </Button>
@@ -255,7 +219,7 @@ export default function PurchasesPage() {
           <CardTitle>Purchases ({filteredPurchases.length})</CardTitle>
           <CardDescription>
             {filteredPurchases.length === purchases.length
-              ? "All your purchases"
+              ? "All your Amazon purchases"
               : `Showing ${filteredPurchases.length} of ${purchases.length} purchases`}
           </CardDescription>
         </CardHeader>
@@ -266,9 +230,13 @@ export default function PurchasesPage() {
                 key={purchase.id}
                 className="flex items-center space-x-4 p-4 border rounded-lg hover:bg-accent/50 transition-colors"
               >
-                {/* Product Image Placeholder */}
-                <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center">
-                  <ShoppingCart className="h-6 w-6 text-muted-foreground" />
+                {/* Product Image */}
+                <div
+                  className={`w-20 h-20 rounded-lg flex items-center justify-center ${getCategoryImageBackground(
+                    purchase.category
+                  )}`}
+                >
+                  {getCategoryIcon(purchase.category)}
                 </div>
 
                 {/* Product Info */}
@@ -283,7 +251,7 @@ export default function PurchasesPage() {
                     {purchase.store} •{" "}
                     {new Date(purchase.date).toLocaleDateString()}
                   </p>
-                  <p className="text-sm text-muted-foreground">
+                  <p className="text-sm text-muted-foreground line-clamp-2">
                     {purchase.description}
                   </p>
                 </div>
