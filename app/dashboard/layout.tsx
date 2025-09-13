@@ -5,6 +5,7 @@ import { ThemeSwitcher } from "@/components/theme-switcher";
 import { useAuth } from "@/lib/hooks/useAuth";
 import Link from "next/link";
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 import {
   Home,
   ShoppingCart,
@@ -36,6 +37,7 @@ export default function DashboardLayout({
 }) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const { user, loading } = useAuth();
+  const pathname = usePathname();
 
   if (loading) {
     return (
@@ -105,15 +107,21 @@ export default function DashboardLayout({
             <div className="flex-1 space-y-1 p-4 overflow-y-auto">
               {sidebarItems.map((item) => {
                 const Icon = item.icon;
+                const isActive = pathname === item.href;
+
                 return (
-                  <Link key={item.href} href={item.href}>
+                  <Link key={item.href} href={item.href} prefetch={true}>
                     <Button
                       variant="ghost"
                       className={`w-full ${
                         sidebarCollapsed
                           ? "justify-center px-2"
                           : "justify-start"
-                      } hover:bg-accent hover:text-accent-foreground`}
+                      } transition-colors duration-150 ${
+                        isActive
+                          ? "bg-accent text-accent-foreground"
+                          : "hover:bg-accent hover:text-accent-foreground"
+                      }`}
                     >
                       <Icon className="h-4 w-4" />
                       {!sidebarCollapsed && (

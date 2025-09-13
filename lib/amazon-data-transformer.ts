@@ -80,8 +80,16 @@ const estimateCarbonScore = (category: string, price: number): number => {
   return Math.max(0.5, Math.min(10, score * randomFactor));
 };
 
+// Cache the transformed data to avoid recalculating
+let cachedPurchases: Purchase[] | null = null;
+
 // Transform Amazon data to Purchase format
 export const transformAmazonDataToPurchases = (): Purchase[] => {
+  // Return cached result if available
+  if (cachedPurchases) {
+    return cachedPurchases;
+  }
+
   const purchases: Purchase[] = [];
   let purchaseId = 1;
 
@@ -108,10 +116,11 @@ export const transformAmazonDataToPurchases = (): Purchase[] => {
     });
   });
 
-  // Sort by date (newest first)
-  return purchases.sort(
+  // Sort by date (newest first) and cache
+  cachedPurchases = purchases.sort(
     (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
   );
+  return cachedPurchases;
 };
 
 // Export the transformed data

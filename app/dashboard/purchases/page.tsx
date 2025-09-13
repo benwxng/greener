@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   Card,
   CardContent,
@@ -13,9 +13,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Search,
+  Filter,
+  Calendar,
   ShoppingCart,
   Leaf,
   ExternalLink,
+  TrendingUp,
   TrendingDown,
   Smartphone,
   Shirt,
@@ -25,8 +28,8 @@ import {
 } from "lucide-react";
 import { amazonPurchases } from "@/lib/amazon-data-transformer";
 
-// Function to get category icon
-function getCategoryIcon(category: string) {
+// Memoized Category Icon Component
+const CategoryIcon = React.memo(({ category }: { category: string }) => {
   const iconProps = { className: "h-8 w-8 text-muted-foreground" };
 
   switch (category) {
@@ -41,7 +44,9 @@ function getCategoryIcon(category: string) {
     default:
       return <Package {...iconProps} />;
   }
-}
+});
+
+CategoryIcon.displayName = "CategoryIcon";
 
 // Function to get category-based background color
 function getCategoryImageBackground(category: string) {
@@ -61,7 +66,7 @@ function getCarbonScoreColor(score: number) {
   return "text-red-600";
 }
 
-function getCarbonScoreBadge(score: number) {
+const CarbonScoreBadge = React.memo(({ score }: { score: number }) => {
   if (score <= 2)
     return (
       <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
@@ -79,7 +84,9 @@ function getCarbonScoreBadge(score: number) {
       High Impact
     </Badge>
   );
-}
+});
+
+CarbonScoreBadge.displayName = "CarbonScoreBadge";
 
 function getCategoryColor(category: string) {
   const colors: { [key: string]: string } = {
@@ -103,23 +110,36 @@ export default function PurchasesPage() {
   // Use real Amazon purchase data
   const purchases = amazonPurchases;
 
-  const categories = [
-    "All",
-    ...Array.from(new Set(purchases.map((p) => p.category))),
-  ];
+  // Memoize categories calculation
+  const categories = useMemo(
+    () => ["All", ...Array.from(new Set(purchases.map((p) => p.category)))],
+    [purchases]
+  );
 
-  const filteredPurchases = purchases.filter((purchase) => {
-    const matchesSearch =
-      purchase.item.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      purchase.store.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCategory =
-      selectedCategory === "All" || purchase.category === selectedCategory;
-    return matchesSearch && matchesCategory;
-  });
+  // Memoize filtered purchases
+  const filteredPurchases = useMemo(() => {
+    return purchases.filter((purchase) => {
+      const matchesSearch =
+        purchase.item.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        purchase.store.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesCategory =
+        selectedCategory === "All" || purchase.category === selectedCategory;
+      return matchesSearch && matchesCategory;
+    });
+  }, [purchases, searchTerm, selectedCategory]);
 
-  const totalSpent = purchases.reduce((sum, p) => sum + p.amount, 0);
-  const totalEmissions = purchases.reduce((sum, p) => sum + p.carbonScore, 0);
-  const averageScore = totalEmissions / purchases.length;
+  // Memoize summary calculations
+  const { totalSpent, totalEmissions, averageScore } = useMemo(() => {
+    const totalSpent = purchases.reduce((sum, p) => sum + p.amount, 0);
+    const totalEmissions = purchases.reduce((sum, p) => sum + p.carbonScore, 0);
+    const averageScore = totalEmissions / purchases.length;
+
+    return {
+      totalSpent,
+      totalEmissions,
+      averageScore,
+    };
+  }, [purchases]);
 
   return (
     <div className="space-y-6">
@@ -200,7 +220,7 @@ export default function PurchasesPage() {
                   }
                   size="sm"
                   onClick={() => setSelectedCategory(category)}
-                  className="mb-2"
+                  className="mb-2 transition-colors duration-150"
                 >
                   {category}
                 </Button>
@@ -225,7 +245,7 @@ export default function PurchasesPage() {
             {filteredPurchases.map((purchase) => (
               <div
                 key={purchase.id}
-                className="flex items-center space-x-4 p-4 border rounded-lg hover:bg-accent/50 transition-colors"
+                className="flex items-center space-x-4 p-4 border rounded-lg hover:bg-accent/50 transition-all duration-150"
               >
                 {/* Product Image */}
                 <div
@@ -233,7 +253,7 @@ export default function PurchasesPage() {
                     purchase.category
                   )}`}
                 >
-                  {getCategoryIcon(purchase.category)}
+                  <CategoryIcon category={purchase.category} />
                 </div>
 
                 {/* Product Info */}
@@ -263,17 +283,25 @@ export default function PurchasesPage() {
                     {purchase.carbonScore} kg
                   </div>
                   <div className="text-xs text-muted-foreground">CO₂</div>
-                  {getCarbonScoreBadge(purchase.carbonScore)}
+                  <CarbonScoreBadge score={purchase.carbonScore} />
                 </div>
 
                 {/* Price & Actions */}
                 <div className="text-right space-y-2">
                   <div className="text-lg font-bold">${purchase.amount}</div>
                   <div className="flex flex-col space-y-1">
-                    <Button variant="outline" size="sm">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="transition-colors duration-150"
+                    >
                       {purchase.alternatives} Alternatives
                     </Button>
-                    <Button variant="ghost" size="sm">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="transition-colors duration-150"
+                    >
                       <ExternalLink className="h-3 w-3 mr-1" />
                       Details
                     </Button>

@@ -1,5 +1,6 @@
 "use client";
 
+import React, { useMemo } from "react";
 import {
   Card,
   CardContent,
@@ -37,8 +38,8 @@ import {
 } from "recharts";
 import { amazonPurchases } from "@/lib/amazon-data-transformer";
 
-// Function to get category icon
-function getCategoryIcon(category: string) {
+// Memoized Category Icon Component
+const CategoryIcon = React.memo(({ category }: { category: string }) => {
   const iconProps = { className: "h-8 w-8 text-muted-foreground" };
 
   switch (category) {
@@ -53,7 +54,9 @@ function getCategoryIcon(category: string) {
     default:
       return <Package {...iconProps} />;
   }
-}
+});
+
+CategoryIcon.displayName = "CategoryIcon";
 
 // Function to get category-based background color
 function getCategoryImageBackground(category: string) {
@@ -67,65 +70,8 @@ function getCategoryImageBackground(category: string) {
   return backgrounds[category as keyof typeof backgrounds] || backgrounds.Other;
 }
 
-// Calculate dashboard metrics from real Amazon data
-const calculateDashboardMetrics = () => {
-  const purchases = amazonPurchases;
-  const totalSpent = purchases.reduce((sum, p) => sum + p.amount, 0);
-  const totalEmissions = purchases.reduce((sum, p) => sum + p.carbonScore, 0);
-  const currentScore = totalEmissions;
-
-  // Group by category for category data
-  const categoryTotals: {
-    [key: string]: { emissions: number; count: number };
-  } = {};
-  purchases.forEach((p) => {
-    if (!categoryTotals[p.category]) {
-      categoryTotals[p.category] = { emissions: 0, count: 0 };
-    }
-    categoryTotals[p.category].emissions += p.carbonScore;
-    categoryTotals[p.category].count += 1;
-  });
-
-  const categoryData = Object.entries(categoryTotals)
-    .map(([category, data]) => ({
-      category,
-      emissions: Math.round(data.emissions * 10) / 10,
-      percentage: Math.round((data.emissions / totalEmissions) * 100),
-    }))
-    .sort((a, b) => b.emissions - a.emissions);
-
-  // Generate trend data (mock for now, but based on real total)
-  const carbonTrendData = [
-    { month: "Jan", emissions: currentScore * 1.2, target: 10 },
-    { month: "Feb", emissions: currentScore * 1.1, target: 10 },
-    { month: "Mar", emissions: currentScore * 1.05, target: 10 },
-    { month: "Apr", emissions: currentScore * 1.02, target: 10 },
-    { month: "May", emissions: currentScore * 1.01, target: 10 },
-    { month: "Jun", emissions: currentScore, target: 10 },
-  ];
-
-  // Get recent purchases (last 3)
-  const recentPurchases = purchases.slice(0, 3);
-
-  return {
-    currentScore: Math.round(currentScore * 10) / 10,
-    totalSpent: Math.round(totalSpent * 100) / 100,
-    totalPurchases: purchases.length,
-    categoryData,
-    carbonTrendData,
-    recentPurchases,
-  };
-};
-
-const metrics = calculateDashboardMetrics();
-
-function getCarbonScoreColor(score: number) {
-  if (score <= 2) return "text-green-600";
-  if (score <= 4) return "text-yellow-600";
-  return "text-red-600";
-}
-
-function getCarbonScoreBadge(score: number) {
+// Memoized Carbon Score Badge Component
+const CarbonScoreBadge = React.memo(({ score }: { score: number }) => {
   if (score <= 2)
     return (
       <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
@@ -143,13 +89,127 @@ function getCarbonScoreBadge(score: number) {
       High Impact
     </Badge>
   );
+});
+
+CarbonScoreBadge.displayName = "CarbonScoreBadge";
+
+// Memoized Chart Components
+const CarbonTrendChart = React.memo(
+  ({
+    data,
+  }: {
+    data: Array<{ month: string; emissions: number; target: number }>;
+  }) => (
+    <ResponsiveContainer width="100%" height={300}>
+      <LineChart data={data}>
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis dataKey="month" />
+        <YAxis />
+        <Tooltip />
+        <Line
+          type="monotone"
+          dataKey="emissions"
+          stroke="#ef4444"
+          strokeWidth={2}
+          name="Actual Emissions"
+        />
+        <Line
+          type="monotone"
+          dataKey="target"
+          stroke="#22c55e"
+          strokeDasharray="5 5"
+          name="Target"
+        />
+      </LineChart>
+    </ResponsiveContainer>
+  )
+);
+
+CarbonTrendChart.displayName = "CarbonTrendChart";
+
+const CategoryChart = React.memo(
+  ({
+    data,
+  }: {
+    data: Array<{ category: string; emissions: number; percentage: number }>;
+  }) => (
+    <ResponsiveContainer width="100%" height={300}>
+      <BarChart data={data}>
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis dataKey="category" />
+        <YAxis />
+        <Tooltip />
+        <Bar dataKey="emissions" fill="#ef4444" />
+      </BarChart>
+    </ResponsiveContainer>
+  )
+);
+
+CategoryChart.displayName = "CategoryChart";
+
+function getCarbonScoreColor(score: number) {
+  if (score <= 2) return "text-green-600";
+  if (score <= 4) return "text-yellow-600";
+  return "text-red-600";
 }
 
 export default function DashboardPage() {
+  // Memoize expensive calculations
+  const metrics = useMemo(() => {
+    const purchases = amazonPurchases;
+    const totalSpent = purchases.reduce((sum, p) => sum + p.amount, 0);
+    const totalEmissions = purchases.reduce((sum, p) => sum + p.carbonScore, 0);
+    const currentScore = totalEmissions;
+
+    // Group by category for category data
+    const categoryTotals: {
+      [key: string]: { emissions: number; count: number };
+    } = {};
+    purchases.forEach((p) => {
+      if (!categoryTotals[p.category]) {
+        categoryTotals[p.category] = { emissions: 0, count: 0 };
+      }
+      categoryTotals[p.category].emissions += p.carbonScore;
+      categoryTotals[p.category].count += 1;
+    });
+
+    const categoryData = Object.entries(categoryTotals)
+      .map(([category, data]) => ({
+        category,
+        emissions: Math.round(data.emissions * 10) / 10,
+        percentage: Math.round((data.emissions / totalEmissions) * 100),
+      }))
+      .sort((a, b) => b.emissions - a.emissions);
+
+    // Generate trend data (mock for now, but based on real total)
+    const carbonTrendData = [
+      { month: "Jan", emissions: currentScore * 1.2, target: 10 },
+      { month: "Feb", emissions: currentScore * 1.1, target: 10 },
+      { month: "Mar", emissions: currentScore * 1.05, target: 10 },
+      { month: "Apr", emissions: currentScore * 1.02, target: 10 },
+      { month: "May", emissions: currentScore * 1.01, target: 10 },
+      { month: "Jun", emissions: currentScore, target: 10 },
+    ];
+
+    // Get recent purchases (last 3)
+    const recentPurchases = purchases.slice(0, 3);
+
+    return {
+      currentScore: Math.round(currentScore * 10) / 10,
+      totalSpent: Math.round(totalSpent * 100) / 100,
+      totalPurchases: purchases.length,
+      categoryData,
+      carbonTrendData,
+      recentPurchases,
+    };
+  }, []); // Empty dependency array since amazonPurchases is static
+
   const monthlyTarget = 10.0;
   const improvement = -0.8; // negative means improvement
-  const progressToTarget =
-    ((monthlyTarget - metrics.currentScore) / monthlyTarget) * 100;
+  const progressToTarget = useMemo(
+    () => ((monthlyTarget - metrics.currentScore) / monthlyTarget) * 100,
+    [metrics.currentScore]
+  );
 
   return (
     <div className="space-y-6">
@@ -240,28 +300,7 @@ export default function DashboardPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={metrics.carbonTrendData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip />
-                <Line
-                  type="monotone"
-                  dataKey="emissions"
-                  stroke="#ef4444"
-                  strokeWidth={2}
-                  name="Actual Emissions"
-                />
-                <Line
-                  type="monotone"
-                  dataKey="target"
-                  stroke="#22c55e"
-                  strokeDasharray="5 5"
-                  name="Target"
-                />
-              </LineChart>
-            </ResponsiveContainer>
+            <CarbonTrendChart data={metrics.carbonTrendData} />
           </CardContent>
         </Card>
 
@@ -273,15 +312,7 @@ export default function DashboardPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={metrics.categoryData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="category" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="emissions" fill="#ef4444" />
-              </BarChart>
-            </ResponsiveContainer>
+            <CategoryChart data={metrics.categoryData} />
           </CardContent>
         </Card>
       </div>
@@ -299,7 +330,7 @@ export default function DashboardPage() {
             {metrics.recentPurchases.map((purchase) => (
               <div
                 key={purchase.id}
-                className="flex items-center justify-between p-4 border rounded-lg"
+                className="flex items-center justify-between p-4 border rounded-lg transition-colors duration-150 hover:bg-accent/50"
               >
                 <div className="flex items-center space-x-4 flex-1">
                   {/* Product Image */}
@@ -308,7 +339,7 @@ export default function DashboardPage() {
                       purchase.category
                     )}`}
                   >
-                    {getCategoryIcon(purchase.category)}
+                    <CategoryIcon category={purchase.category} />
                   </div>
 
                   {/* Product Info */}
@@ -333,7 +364,7 @@ export default function DashboardPage() {
                       >
                         {purchase.carbonScore} kg CO₂
                       </span>
-                      {getCarbonScoreBadge(purchase.carbonScore)}
+                      <CarbonScoreBadge score={purchase.carbonScore} />
                     </div>
                   </div>
                 </div>
