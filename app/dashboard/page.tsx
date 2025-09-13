@@ -11,7 +11,6 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  TrendingUp,
   TrendingDown,
   ShoppingCart,
   Leaf,
@@ -119,7 +118,7 @@ export default function DashboardPage() {
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Welcome back!</h1>
         <p className="text-muted-foreground">
-          Here's your carbon footprint overview for this month.
+          Here&apos;s your carbon footprint overview for this month.
         </p>
       </div>
 
