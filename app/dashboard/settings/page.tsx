@@ -70,6 +70,75 @@ export default function SettingsPage() {
         </p>
       </div>
 
+      {/* Connected Services */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            <CreditCard className="h-5 w-5" />
+            <span>Connected Services</span>
+          </CardTitle>
+          <CardDescription>
+            Manage integrations with banks and shopping platforms
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between p-4 border rounded-lg">
+              <div className="flex items-center space-x-3">
+                <CreditCard className="h-6 w-6 text-muted-foreground" />
+                <div>
+                  <h4 className="font-medium">Bank Account (Chase)</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Transaction tracking for carbon analysis
+                  </p>
+                </div>
+              </div>
+              <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
+                Connected
+              </Badge>
+            </div>
+
+            <div className="flex items-center justify-between p-4 border rounded-lg">
+              <div className="flex items-center space-x-3">
+                <div className="w-6 h-6 relative">
+                  <Image
+                    src="/knotLogo.jpg"
+                    alt="Knot Logo"
+                    width={24}
+                    height={24}
+                    className="rounded object-contain"
+                  />
+                </div>
+                <div>
+                  <h4 className="font-medium">Knot Transaction API</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Link your merchant accounts
+                  </p>
+                </div>
+              </div>
+              <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
+                Connected
+              </Badge>
+            </div>
+
+            <div className="flex items-center justify-between p-4 border rounded-lg">
+              <div className="flex items-center space-x-3">
+                <Globe className="h-6 w-6 text-muted-foreground" />
+                <div>
+                  <h4 className="font-medium">Amazon Affiliate</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Product recommendations and affiliate links
+                  </p>
+                </div>
+              </div>
+              <Button variant="outline" size="sm">
+                Connect
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Data Migration */}
       <DataMigration />
 
@@ -190,75 +259,6 @@ export default function SettingsPage() {
             <Save className="h-4 w-4 mr-2" />
             Update Goals
           </Button>
-        </CardContent>
-      </Card>
-
-      {/* Connected Services */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center space-x-2">
-            <CreditCard className="h-5 w-5" />
-            <span>Connected Services</span>
-          </CardTitle>
-          <CardDescription>
-            Manage integrations with banks and shopping platforms
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-4">
-            <div className="flex items-center justify-between p-4 border rounded-lg">
-              <div className="flex items-center space-x-3">
-                <CreditCard className="h-6 w-6 text-muted-foreground" />
-                <div>
-                  <h4 className="font-medium">Bank Account (Chase)</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Transaction tracking for carbon analysis
-                  </p>
-                </div>
-              </div>
-              <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
-                Connected
-              </Badge>
-            </div>
-
-            <div className="flex items-center justify-between p-4 border rounded-lg">
-              <div className="flex items-center space-x-3">
-                <div className="w-6 h-6 relative">
-                  <Image
-                    src="/knotLogo.jpg"
-                    alt="Knot Logo"
-                    width={24}
-                    height={24}
-                    className="rounded object-contain"
-                  />
-                </div>
-                <div>
-                  <h4 className="font-medium">Knot Transaction API</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Link your merchant accounts
-                  </p>
-                </div>
-              </div>
-              <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300">
-                Connected
-              </Badge>
-            </div>
-
-            <div className="flex items-center justify-between p-4 border rounded-lg">
-              <div className="flex items-center space-x-3">
-                <Globe className="h-6 w-6 text-muted-foreground" />
-                <div>
-                  <h4 className="font-medium">Amazon Affiliate</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Product recommendations and affiliate links
-                  </p>
-                </div>
-              </div>
-              <Button variant="outline" size="sm">
-                Connect
-              </Button>
-            </div>
-          </div>
         </CardContent>
       </Card>
 
