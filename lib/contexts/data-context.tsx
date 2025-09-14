@@ -24,12 +24,16 @@ interface DataContextType {
     totalEmissions: number;
     averageScore: number;
   };
+  refreshData: () => void;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
 export function DataProvider({ children }: { children: React.ReactNode }) {
+  const [refreshKey, setRefreshKey] = React.useState(0);
+
   const processedData = useMemo(() => {
+    // Get fresh data each time (no caching in transformer now)
     const purchases = amazonPurchases;
     const totalSpent = purchases.reduce((sum, p) => sum + p.amount, 0);
     const totalEmissions = purchases.reduce((sum, p) => sum + p.carbonScore, 0);
@@ -105,8 +109,9 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         carbonTrendData,
         recentPurchases,
       },
+      refreshData: () => setRefreshKey((prev) => prev + 1),
     };
-  }, []); // Only calculate once
+  }, [refreshKey]); // Depend on refreshKey to allow manual refresh
 
   return (
     <DataContext.Provider value={processedData}>
