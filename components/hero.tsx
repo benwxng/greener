@@ -1,6 +1,7 @@
 import { Button } from "./ui/button";
 import { Card, CardContent } from "./ui/card";
 import { Badge } from "./ui/badge";
+import { KnotLogo } from "./knot-logo";
 import {
   Leaf,
   ShoppingCart,
@@ -34,6 +35,13 @@ export function Hero() {
           sustainable alternatives that help you reduce your carbon footprint
           while saving money.
         </p>
+        
+        {/* Powered by Knot */}
+        <div className="flex items-center justify-center space-x-2 mt-6 p-4 bg-gray-50 dark:bg-gray-900 rounded-lg border">
+          <span className="text-sm text-muted-foreground">Powered by</span>
+          <KnotLogo size="md" />
+          <span className="text-sm text-muted-foreground">Transaction API</span>
+        </div>
 
         <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
           <Link href="/auth/sign-up">
@@ -101,7 +109,7 @@ export function Hero() {
             </div>
             <h4 className="text-xl font-semibold">Track Purchases</h4>
             <p className="text-sm text-muted-foreground">
-              Connect your bank account to automatically track all transactions
+              Powered by Knot API - securely connect your bank account to automatically track all transactions
             </p>
           </Card>
 
@@ -223,6 +231,15 @@ export function Hero() {
       </div>
 
       <div className="w-full p-[1px] bg-gradient-to-r from-transparent via-foreground/10 to-transparent my-8" />
+      
+      {/* Footer Attribution */}
+      <div className="text-center space-y-2 text-sm text-muted-foreground">
+        <p>Secure transaction tracking powered by</p>
+        <div className="flex items-center justify-center space-x-2">
+          <KnotLogo size="md" />
+        </div>
+        <p>Trusted by financial institutions worldwide</p>
+      </div>
     </div>
   );
 }
