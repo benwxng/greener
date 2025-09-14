@@ -37,6 +37,7 @@ import {
   Bar,
 } from "recharts";
 import { amazonPurchases } from "@/lib/amazon-data-transformer";
+import Link from "next/link";
 
 // Memoized Category Icon Component
 const CategoryIcon = React.memo(({ category }: { category: string }) => {
@@ -217,7 +218,7 @@ export default function DashboardPage() {
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Welcome back!</h1>
         <p className="text-muted-foreground">
-          Here's your carbon footprint overview based on your Amazon purchases.
+          Here&apos;s your carbon footprint overview based on your Amazon purchases.
         </p>
       </div>
 
@@ -379,7 +380,9 @@ export default function DashboardPage() {
             ))}
           </div>
           <div className="mt-4 text-center">
-            <Button variant="outline">View All Purchases</Button>
+            <Link href="/dashboard/purchases">
+              <Button variant="outline">View All Purchases</Button>
+            </Link>
           </div>
         </CardContent>
       </Card>

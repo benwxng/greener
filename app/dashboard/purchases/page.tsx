@@ -25,6 +25,9 @@ import {
   Home,
   Heart,
   Package,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
 } from "lucide-react";
 import { amazonPurchases } from "@/lib/amazon-data-transformer";
 
@@ -103,9 +106,12 @@ function getCategoryColor(category: string) {
   return colors[category] || colors.Other;
 }
 
+type SortOption = "newest" | "oldest" | "expensive" | "carbon";
+
 export default function PurchasesPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const [sortBy, setSortBy] = useState<SortOption>("newest");
 
   // Use real Amazon purchase data
   const purchases = amazonPurchases;
@@ -116,9 +122,9 @@ export default function PurchasesPage() {
     [purchases]
   );
 
-  // Memoize filtered purchases
+  // Memoize filtered and sorted purchases
   const filteredPurchases = useMemo(() => {
-    return purchases.filter((purchase) => {
+    const filtered = purchases.filter((purchase) => {
       const matchesSearch =
         purchase.item.toLowerCase().includes(searchTerm.toLowerCase()) ||
         purchase.store.toLowerCase().includes(searchTerm.toLowerCase());
@@ -126,7 +132,23 @@ export default function PurchasesPage() {
         selectedCategory === "All" || purchase.category === selectedCategory;
       return matchesSearch && matchesCategory;
     });
-  }, [purchases, searchTerm, selectedCategory]);
+
+    // Apply sorting
+    return filtered.sort((a, b) => {
+      switch (sortBy) {
+        case "newest":
+          return new Date(b.date).getTime() - new Date(a.date).getTime();
+        case "oldest":
+          return new Date(a.date).getTime() - new Date(b.date).getTime();
+        case "expensive":
+          return b.amount - a.amount;
+        case "carbon":
+          return b.carbonScore - a.carbonScore;
+        default:
+          return 0;
+      }
+    });
+  }, [purchases, searchTerm, selectedCategory, sortBy]);
 
   // Memoize summary calculations
   const { totalSpent, totalEmissions, averageScore } = useMemo(() => {
@@ -199,19 +221,71 @@ export default function PurchasesPage() {
           <CardTitle>Filter & Search</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col space-y-4 md:flex-row md:space-y-0 md:space-x-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search purchases..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-8"
-                />
+          <div className="space-y-4">
+            {/* Search and Sort Row */}
+            <div className="flex flex-col space-y-4 lg:flex-row lg:space-y-0 lg:space-x-4">
+              <div className="flex-1">
+                <div className="relative">
+                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search purchases..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-8"
+                  />
+                </div>
+              </div>
+              
+              {/* Sort Options */}
+              <div className="flex items-center space-x-2">
+                <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground whitespace-nowrap">Sort by:</span>
+                <div className="flex space-x-1">
+                  <Button
+                    variant={sortBy === "newest" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setSortBy("newest")}
+                    className="transition-colors duration-150"
+                  >
+                    <ArrowDown className="h-3 w-3 mr-1" />
+                    Newest
+                  </Button>
+                  <Button
+                    variant={sortBy === "oldest" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setSortBy("oldest")}
+                    className="transition-colors duration-150"
+                  >
+                    <ArrowUp className="h-3 w-3 mr-1" />
+                    Oldest
+                  </Button>
+                  <Button
+                    variant={sortBy === "expensive" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setSortBy("expensive")}
+                    className="transition-colors duration-150"
+                  >
+                    $
+                  </Button>
+                  <Button
+                    variant={sortBy === "carbon" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setSortBy("carbon")}
+                    className="transition-colors duration-150"
+                  >
+                    <Leaf className="h-3 w-3 mr-1" />
+                    CO₂
+                  </Button>
+                </div>
               </div>
             </div>
-            <div className="flex space-x-2 flex-wrap">
+            
+            {/* Category Filters */}
+            <div className="flex flex-wrap gap-2">
+              <span className="text-sm text-muted-foreground flex items-center">
+                <Filter className="h-4 w-4 mr-2" />
+                Categories:
+              </span>
               {categories.map((category) => (
                 <Button
                   key={category}
@@ -220,7 +294,7 @@ export default function PurchasesPage() {
                   }
                   size="sm"
                   onClick={() => setSelectedCategory(category)}
-                  className="mb-2 transition-colors duration-150"
+                  className="transition-colors duration-150"
                 >
                   {category}
                 </Button>
