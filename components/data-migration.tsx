@@ -81,7 +81,7 @@ export function DataMigration() {
       } else {
         setStatus("error");
         setErrorDetails(
-          migrationResult.error ||
+          (migrationResult as any).error ||
             "Migration completed but with errors. Check console for details."
         );
       }
