@@ -23,6 +23,8 @@ import {
   Globe,
   Save,
 } from "lucide-react";
+import { DataMigration } from "@/components/data-migration";
+import { AIEstimationTrigger } from "@/components/ai-estimation-trigger";
 
 export default function SettingsPage() {
   const [notifications, setNotifications] = useState({
@@ -66,6 +68,12 @@ export default function SettingsPage() {
           Manage your account preferences and sustainability goals
         </p>
       </div>
+
+      {/* Data Migration */}
+      <DataMigration />
+
+      {/* AI Carbon Estimation */}
+      <AIEstimationTrigger />
 
       {/* Profile Settings */}
       <Card>

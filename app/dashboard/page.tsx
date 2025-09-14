@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import Link from "next/link";
 import {
   Card,
   CardContent,
@@ -24,6 +25,11 @@ import {
   Home,
   Heart,
   Package,
+  Database,
+  FileText,
+  Brain,
+  CheckCircle,
+  Loader2,
 } from "lucide-react";
 import {
   LineChart,
@@ -37,8 +43,6 @@ import {
   Bar,
 } from "recharts";
 import { useData } from "@/lib/contexts/data-context";
-import { amazonPurchases } from "@/lib/amazon-data-transformer";
-import Link from "next/link";
 
 // Memoized Category Icon Component
 const CategoryIcon = React.memo(({ category }: { category: string }) => {
@@ -172,8 +176,17 @@ function getCarbonScoreColor(score: number) {
 }
 
 export default function DashboardPage() {
-  // Use shared data context - no more expensive calculations!
-  const { metrics } = useData();
+  // Use shared data context - automatically uses database when available!
+  const { metrics, isUsingDatabase, isLoading, carbonEstimationStatus } =
+    useData();
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
+      </div>
+    );
+  }
 
   const monthlyTarget = 10.0;
   const improvement = -0.8; // negative means improvement
@@ -184,11 +197,47 @@ export default function DashboardPage() {
     <div className="space-y-6">
       {/* Welcome Header */}
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Welcome back!</h1>
-        <p className="text-muted-foreground">
-          Here&apos;s your carbon footprint overview based on your last
-          purchases.
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Welcome back!</h1>
+            <p className="text-muted-foreground">
+              Here&apos;s your carbon footprint overview based on your Amazon
+              purchases.
+            </p>
+          </div>
+          <div className="flex items-center space-x-2">
+            {/* Data Source Badge */}
+            {isUsingDatabase ? (
+              <Badge className="bg-green-100 text-green-800 flex items-center space-x-1">
+                <Database className="h-3 w-3" />
+                <span>Database</span>
+              </Badge>
+            ) : (
+              <Badge className="bg-blue-100 text-blue-800 flex items-center space-x-1">
+                <FileText className="h-3 w-3" />
+                <span>JSON</span>
+              </Badge>
+            )}
+
+            {/* Carbon Estimation Status */}
+            {isUsingDatabase && (
+              <>
+                {carbonEstimationStatus === "processing" && (
+                  <Badge className="bg-orange-100 text-orange-800 flex items-center space-x-1">
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                    <span>AI Processing</span>
+                  </Badge>
+                )}
+                {carbonEstimationStatus === "complete" && (
+                  <Badge className="bg-purple-100 text-purple-800 flex items-center space-x-1">
+                    <Brain className="h-3 w-3" />
+                    <span>AI Enhanced</span>
+                  </Badge>
+                )}
+              </>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Key Metrics */}
@@ -199,9 +248,7 @@ export default function DashboardPage() {
             <Leaf className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {metrics.currentScore} kg CO₂
-            </div>
+            <div className="text-2xl font-bold">{metrics.currentScore}</div>
             <p className="text-xs text-muted-foreground">
               <span className="flex items-center">
                 <TrendingDown className="h-3 w-3 text-green-600 mr-1" />
@@ -219,7 +266,7 @@ export default function DashboardPage() {
             <Target className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{monthlyTarget} kg CO₂</div>
+            <div className="text-2xl font-bold">{monthlyTarget}</div>
             <div className="mt-2">
               <Progress value={Math.max(0, progressToTarget)} className="h-2" />
             </div>
@@ -295,6 +342,12 @@ export default function DashboardPage() {
           <CardTitle>Recent Purchases</CardTitle>
           <CardDescription>
             Your latest purchases and their carbon impact
+            {carbonEstimationStatus === "processing" && (
+              <span className="text-orange-600">
+                {" "}
+                • AI analysis in progress
+              </span>
+            )}
           </CardDescription>
         </CardHeader>
         <CardContent>
