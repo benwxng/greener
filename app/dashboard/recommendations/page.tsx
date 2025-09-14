@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -20,7 +21,7 @@ const recommendations = [
   {
     id: 1,
     title: "Eco-Friendly Running Shoes",
-    originalProduct: "Nike Air Max",
+    originalProduct: "Nike Vapor Max",
     recommendedProduct: "Allbirds Tree Runners",
     store: "Allbirds",
     originalPrice: 129.99,
@@ -63,7 +64,7 @@ const recommendations = [
     features: ["Biodegradable", "Reusable", "Environmentally friendly"],
     affiliateLink:
       "https://www.amazon.com/Ezhippie-Reusable-Softener-Essential-Clothing/dp/B0B7K8MDP5/ref=sr_1_4?crid=4EZB5DWZDD64&dib=eyJ2IjoiMSJ9.L8ugfClpt3n2F_j8ZhQgcuakKluJjuT2VCwon-J32tpjYRAUq0Mrqe4lewaHMfwawUrtb5ZIleQbiF3mFBPZcxQZxaoede9ZAeRcokUEjpNSo8BSbdigL796q2i9nJ6qqC4eGwvJYrdWiJ1xnV0oTfkgnnxvNwRVzSiyuyD5JgtZMcMQQzX-mNOHqatXKXzxBoEwD7a3SQLy28Mjf-Z63ckGEMNPaxCfi_dBM2CuWrPc5tZZj3Hnsvg73Zx1UKgxxVR00mV8TDUFPpHlGEumJI28iK3AcELwWWv-QgcT2MA.7PKVlie1ZaPQus8fAnEHoSztKviOJIBI3i_BkJA-TXE&dib_tag=se&keywords=dryer%2Bballs&qid=1757859781&sprefix=dryer%2Bballs%2Caps%2C161&sr=8-4&th=1",
-    image: "/api/placeholder/120/120",
+    image: "/dryerballs.webp",
     reason: "Made from renewable bamboo instead of energy-intensive aluminum",
   },
   {
@@ -89,33 +90,34 @@ const recommendations = [
       "Repairable",
     ],
     affiliateLink: "https://amazon.com/fairphone-5",
-    image: "/api/placeholder/120/120",
+    image: "/fairphone.png",
     reason: "Lower carbon footprint with modular, repairable design",
   },
   {
     id: 4,
-    title: "Sustainable Coffee Alternative",
-    originalProduct: "Regular Coffee Beans",
-    recommendedProduct: "Organic Rainforest Alliance Coffee",
-    store: "Whole Foods",
-    originalPrice: 12.5,
-    recommendedPrice: 14.99,
+    title: "Bottled Water Alternative",
+    originalProduct: "Deer Park 24 Pack Bottled Water",
+    recommendedProduct: "Brita Water Filter",
+    store: "Amazon",
+    originalPrice: 18.0,
+    recommendedPrice: 31.48,
     originalCarbon: 1.2,
     recommendedCarbon: 0.4,
-    savings: -2.49,
+    savings: -13.48,
     carbonReduction: 0.8,
     rating: 4.5,
     reviews: 892,
-    category: "Food",
+    category: "Home",
     sustainabilityScore: 9.5,
     features: [
-      "Rainforest Alliance certified",
-      "Organic",
-      "Fair trade",
+      "Carbon neutral",
+      "BPA free",
+      "Eco-friendly",
       "Carbon offset program",
     ],
-    affiliateLink: "https://amazon.com/rainforest-coffee",
-    image: "/api/placeholder/120/120",
+    affiliateLink:
+      "https://www.amazon.com/Brita-Water-Filter-Replacement-Filter/dp/B0711111111/ref=sr_1_1?crid=1234567890&dib=eyJ2IjoiMSJ9.1234567890&keywords=brita+water+filter&qid=1757860000&sprefix=brita+water+filter%2Caps%2C155&sr=8-1",
+    image: "/brita.jpg",
     reason: "Supports forest conservation and reduces environmental impact",
   },
 ];
@@ -210,7 +212,9 @@ export default function RecommendationsPage() {
                 : `+${Math.abs(totalSavings).toFixed(2)}`}
             </div>
             <p className="text-xs text-muted-foreground">
-              {totalSavings > 0 ? "Money saved" : "Small investment for impact"}
+              {totalSavings > 0
+                ? "Save money while saving the planet"
+                : "Small investment for impact"}
             </p>
           </CardContent>
         </Card>
@@ -275,8 +279,28 @@ export default function RecommendationsPage() {
             <CardContent className="p-6">
               <div className="flex space-x-6">
                 {/* Product Image */}
-                <div className="w-32 h-32 bg-muted rounded-lg flex items-center justify-center flex-shrink-0">
-                  <ShoppingCart className="h-8 w-8 text-muted-foreground" />
+                <div className="w-32 h-32 bg-muted rounded-lg overflow-hidden flex items-center justify-center flex-shrink-0">
+                  {rec.image ? (
+                    <Image
+                      src={rec.image}
+                      alt={rec.title}
+                      width={128}
+                      height={128}
+                      className="object-cover w-full h-full"
+                      onError={(e) => {
+                        // Fallback to shopping cart icon if image fails to load
+                        e.currentTarget.style.display = "none";
+                        e.currentTarget.nextElementSibling?.classList.remove(
+                          "hidden"
+                        );
+                      }}
+                    />
+                  ) : null}
+                  <ShoppingCart
+                    className={`h-8 w-8 text-muted-foreground ${
+                      rec.image ? "hidden" : ""
+                    }`}
+                  />
                 </div>
 
                 {/* Main Content */}
@@ -419,9 +443,15 @@ export default function RecommendationsPage() {
 
                   {/* Actions */}
                   <div className="flex space-x-3">
-                    <Button className="flex-1">
-                      <ExternalLink className="h-4 w-4 mr-2" />
-                      Shop on {rec.store}
+                    <Button className="flex-1" asChild>
+                      <a
+                        href={rec.affiliateLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <ExternalLink className="h-4 w-4 mr-2" />
+                        Shop
+                      </a>
                     </Button>
                     <Button variant="outline">
                       <AlertCircle className="h-4 w-4 mr-2" />
