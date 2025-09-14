@@ -62,14 +62,42 @@ const categorizeProduct = (productName: string): string => {
   return "Other";
 };
 
-// Simple carbon score estimation based on category and price
+// Simple hash function to create deterministic "random" values
+function simpleHash(str: string): number {
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = (hash << 5) - hash + char;
+    hash = hash & hash; // Convert to 32-bit integer
+  }
+  return Math.abs(hash);
+}
+
+// Deterministic "random" factor based on product name and price
+function getDeterministicFactor(productName: string, price: number): number {
+  const hash = simpleHash(productName + price.toString());
+  const normalized = (hash % 1000) / 1000; // Normalize to 0-1 range
+  return 0.8 + normalized * 0.4; // Scale to 0.8-1.2 range
+}
+
+// Deterministic alternatives count based on product data
+function getDeterministicAlternatives(
+  productName: string,
+  category: string
+): number {
+  const hash = simpleHash(productName + category);
+  return (hash % 8) + 2; // Range 2-9
+}
+
+// Estimate carbon score for a product based on category and price
 const estimateCarbonScore = (
   category: string,
   price: number,
-  quantity: number
+  quantity: number = 1,
+  productName: string = ""
 ): number => {
   const baseScores = {
-    Electronics: 0.008, // Higher carbon per dollar
+    Electronics: 0.008,
     Fashion: 0.006,
     "Health & Personal Care": 0.003,
     "Home & Garden": 0.004,
@@ -79,9 +107,9 @@ const estimateCarbonScore = (
   const multiplier = baseScores[category as keyof typeof baseScores] || 0.005;
   const score = price * multiplier * quantity; // Factor in quantity
 
-  // Add some randomness and cap between 0.5 and 15 (higher max for multiple items)
-  const randomFactor = 0.8 + Math.random() * 0.4; // 0.8 to 1.2
-  return Math.max(0.5, Math.min(15, score * randomFactor));
+  // Use deterministic factor instead of Math.random()
+  const deterministicFactor = getDeterministicFactor(productName, price);
+  return Math.max(0.5, Math.min(15, score * deterministicFactor));
 };
 
 // Transform Amazon data to Purchase format
@@ -101,7 +129,12 @@ export const transformAmazonDataToPurchases = (): Purchase[] => {
       const totalPrice = parseFloat(product.price.total);
       const unitPrice = parseFloat(product.price.unit_price);
       const quantity = product.quantity;
-      const carbonScore = estimateCarbonScore(category, totalPrice, 1); // Use total price, quantity 1
+      const carbonScore = estimateCarbonScore(
+        category,
+        totalPrice,
+        1,
+        product.name
+      ); // Use total price, quantity 1
 
       // Create single purchase entry with actual quantity and total price
       purchases.push({
@@ -116,7 +149,7 @@ export const transformAmazonDataToPurchases = (): Purchase[] => {
           quantity > 1
             ? `${product.name} (${quantity} items) from ${amazonData.merchant.name}`
             : `${product.name} from ${amazonData.merchant.name}`,
-        alternatives: Math.floor(Math.random() * 8) + 2, // Random between 2-9
+        alternatives: getDeterministicAlternatives(product.name, category), // Use deterministic alternatives
       });
     });
   });

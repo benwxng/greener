@@ -1,7 +1,8 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { motion } from "framer-motion";
 import {
   Card,
   CardContent,
@@ -44,6 +45,48 @@ import {
   Bar,
 } from "recharts";
 import { useData } from "@/lib/contexts/data-context";
+
+// Animation variants
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      delayChildren: 0.1,
+      staggerChildren: 0.1,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { y: 20, opacity: 0 },
+  visible: {
+    y: 0,
+    opacity: 1,
+    transition: {
+      type: "spring" as const,
+      stiffness: 100,
+      damping: 10,
+    },
+  },
+};
+
+const cardVariants = {
+  hidden: { scale: 0.8, opacity: 0 },
+  visible: {
+    scale: 1,
+    opacity: 1,
+    transition: {
+      type: "spring" as const,
+      stiffness: 100,
+      damping: 15,
+    },
+  },
+  hover: {
+    scale: 1.02,
+    transition: { duration: 0.2 },
+  },
+};
 
 // Memoized Category Icon Component
 const CategoryIcon = React.memo(({ category }: { category: string }) => {
@@ -177,14 +220,70 @@ function getCarbonScoreColor(score: number) {
 }
 
 export default function DashboardPage() {
+  const [mounted, setMounted] = useState(false);
+
   // Use shared data context - automatically uses database when available!
   const { metrics, isUsingDatabase, isLoading, carbonEstimationStatus } =
     useData();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
+      </div>
+    );
+  }
+
+  // Prevent hydration mismatch by not rendering animations until mounted
+  if (!mounted) {
+    return (
+      <div className="space-y-6">
+        {/* Welcome Header */}
+        <div>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight">
+                Welcome back!
+              </h1>
+              <p className="text-muted-foreground">
+                Here&apos;s your carbon footprint overview based on your past
+                purchases.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Key Metrics */}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <div className="h-full">
+            <Card className="h-full flex flex-col">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Current Footprint
+                </CardTitle>
+                <Leaf className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent className="flex-1 flex flex-col justify-between">
+                <div>
+                  <div className="text-2xl font-bold">
+                    {metrics.currentScore} kg CO₂
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    <span className="flex items-center">
+                      <TrendingDown className="h-3 w-3 text-green-600 mr-1" />
+                      {60}% below average
+                    </span>
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+          {/* Add other static cards here if needed */}
+        </div>
       </div>
     );
   }
@@ -195,9 +294,14 @@ export default function DashboardPage() {
     ((monthlyTarget - metrics.currentScore) / monthlyTarget) * 100;
 
   return (
-    <div className="space-y-6">
+    <motion.div
+      className="space-y-6"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
       {/* Welcome Header */}
-      <div>
+      <motion.div variants={itemVariants}>
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Welcome back!</h1>
@@ -207,180 +311,278 @@ export default function DashboardPage() {
             </p>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Key Metrics */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Current Footprint
-            </CardTitle>
-            <Leaf className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {metrics.currentScore} kg CO₂
-            </div>
-            <p className="text-xs text-muted-foreground">
-              <span className="flex items-center">
-                <TrendingDown className="h-3 w-3 text-green-600 mr-1" />
-                {60}% below average
-              </span>
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Carbon Saved</CardTitle>
-            <Target className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{Math.round(16)} kg</div>
-            <div className="mt-2">
-              <Progress value={Math.max(0, 40)} className="h-2" />
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              {Math.round(Math.max(0, 40))}% to target
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Saved</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">${317.45}</div>
-            <p className="text-xs text-muted-foreground">
-              <span className="flex items-center">
-                <Award className="h-3 w-3 text-green-600 mr-1" />
-                On tracked purchases
-              </span>
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Trees Planted</CardTitle>
-            <TreePine className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{metrics.totalPurchases}</div>
-            <p className="text-xs text-muted-foreground">
-              <span className="flex items-center">
-                <Calendar className="h-3 w-3 mr-1" />
-                From Greener
-              </span>
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Charts Section */}
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Carbon Footprint Trend</CardTitle>
-            <CardDescription>
-              Your monthly carbon emissions over time
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <CarbonTrendChart data={metrics.carbonTrendData} />
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Emissions by Category</CardTitle>
-            <CardDescription>
-              Where your carbon footprint comes from
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <CategoryChart data={metrics.categoryData} />
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Recent Purchases */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent Purchases</CardTitle>
-          <CardDescription>
-            Your latest purchases and their carbon impact
-            {carbonEstimationStatus === "processing" && (
-              <span className="text-orange-600">
-                {" "}
-                • AI analysis in progress
-              </span>
-            )}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {metrics.recentPurchases.map((purchase) => (
-              <div
-                key={purchase.id}
-                className="flex items-center justify-between p-4 border rounded-lg transition-colors duration-150 hover:bg-accent/50"
-              >
-                <div className="flex items-center space-x-4 flex-1">
-                  {/* Product Image */}
-                  <div
-                    className={`w-16 h-16 rounded-lg flex items-center justify-center ${getCategoryImageBackground(
-                      purchase.category
-                    )}`}
-                  >
-                    <CategoryIcon category={purchase.category} />
+      <motion.div
+        className="grid gap-4 md:grid-cols-2 lg:grid-cols-4"
+        variants={containerVariants}
+      >
+        <motion.div variants={itemVariants}>
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            transition={{ duration: 0.2 }}
+            className="h-full"
+          >
+            <Card className="h-full flex flex-col">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Current Footprint
+                </CardTitle>
+                <Leaf className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent className="flex-1 flex flex-col justify-between">
+                <div>
+                  <div className="text-2xl font-bold">
+                    {metrics.currentScore} kg CO₂
                   </div>
+                  <p className="text-xs text-muted-foreground">
+                    <span className="flex items-center">
+                      <TrendingDown className="h-3 w-3 text-green-600 mr-1" />
+                      {60}% below average
+                    </span>
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </motion.div>
 
-                  {/* Product Info */}
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-2">
-                      <h4 className="font-medium line-clamp-1">
-                        {purchase.item}
-                      </h4>
-                    </div>
-                    <p className="text-sm text-muted-foreground">
-                      {purchase.store} •{" "}
-                      {new Date(purchase.date).toLocaleDateString()}
-                    </p>
-                    <div className="flex items-center space-x-2 mt-1">
-                      <span className="text-sm font-medium">
-                        ${purchase.amount}
-                      </span>
-                      <span
-                        className={`text-sm font-medium ${getCarbonScoreColor(
-                          purchase.carbonScore
-                        )}`}
-                      >
-                        {purchase.carbonScore} kg CO₂
-                      </span>
-                      <CarbonScoreBadge score={purchase.carbonScore} />
-                    </div>
+        <motion.div variants={itemVariants}>
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            transition={{ duration: 0.2 }}
+            className="h-full"
+          >
+            <Card className="h-full flex flex-col">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Carbon Saved
+                </CardTitle>
+                <Target className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent className="flex-1 flex flex-col justify-between">
+                <div>
+                  <div className="text-2xl font-bold">16 kg</div>
+                  <Progress value={Math.max(0, 40)} className="mt-2" />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {Math.round(Math.max(0, 40))}% to target
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </motion.div>
+
+        <motion.div variants={itemVariants}>
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            transition={{ duration: 0.2 }}
+            className="h-full"
+          >
+            <Card className="h-full flex flex-col">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Total Saved
+                </CardTitle>
+                <DollarSign className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent className="flex-1 flex flex-col justify-between">
+                <div>
+                  <div className="text-2xl font-bold text-green-600">
+                    ${317.45}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    <span className="flex items-center">
+                      <Award className="h-3 w-3 text-green-600 mr-1" />
+                      On tracked purchases
+                    </span>
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </motion.div>
+
+        <motion.div variants={itemVariants}>
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            transition={{ duration: 0.2 }}
+            className="h-full"
+          >
+            <Card className="h-full flex flex-col">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Trees Planted
+                </CardTitle>
+                <TreePine className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent className="flex-1 flex flex-col justify-between">
+                <div className="flex-1">
+                  <div className="text-2xl font-bold">
+                    {metrics.totalPurchases}
                   </div>
                 </div>
-
-                {/* Actions */}
-                <div className="ml-4">
-                  <Button variant="outline" size="sm">
-                    {purchase.alternatives} Alternatives
+                <div className="mt-auto">
+                  <Button
+                    size="sm"
+                    className="bg-green-600 hover:bg-green-700 text-white text-xs px-3 py-1 h-7"
+                    asChild
+                  >
+                    <a
+                      href="https://onetreeplanted.org/products/plant-trees?srsltid=AfmBOopsxmq5M5MUvFNULMgy2Q0HXL-WWQgGZ7dsV6aOjK2UEbGWBtvO"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      Offset Emissions
+                    </a>
                   </Button>
                 </div>
-              </div>
-            ))}
-          </div>
-          <div className="mt-4 text-center">
-            <Link href="/dashboard/purchases">
-              <Button variant="outline">View All Purchases</Button>
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </motion.div>
+      </motion.div>
+
+      {/* Charts Section */}
+      <motion.div
+        className="grid gap-4 md:grid-cols-2"
+        variants={containerVariants}
+      >
+        <motion.div variants={itemVariants}>
+          <motion.div
+            whileHover={{ scale: 1.01 }}
+            transition={{ duration: 0.2 }}
+          >
+            <Card>
+              <CardHeader>
+                <CardTitle>Carbon Footprint Trend</CardTitle>
+                <CardDescription>
+                  Your monthly carbon emissions over time
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <CarbonTrendChart data={metrics.carbonTrendData} />
+              </CardContent>
+            </Card>
+          </motion.div>
+        </motion.div>
+
+        <motion.div variants={itemVariants}>
+          <motion.div
+            whileHover={{ scale: 1.01 }}
+            transition={{ duration: 0.2 }}
+          >
+            <Card>
+              <CardHeader>
+                <CardTitle>Emissions by Category</CardTitle>
+                <CardDescription>
+                  Where your carbon footprint comes from
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <CategoryChart data={metrics.categoryData} />
+              </CardContent>
+            </Card>
+          </motion.div>
+        </motion.div>
+      </motion.div>
+
+      {/* Recent Purchases */}
+      <motion.div variants={itemVariants}>
+        <motion.div
+          whileHover={{ scale: 1.005 }}
+          transition={{ duration: 0.2 }}
+        >
+          <Card>
+            <CardHeader>
+              <CardTitle>Recent Purchases</CardTitle>
+              <CardDescription>
+                Your latest purchases and their carbon impact
+                {carbonEstimationStatus === "processing" && (
+                  <span className="text-orange-600">
+                    {" "}
+                    • AI analysis in progress
+                  </span>
+                )}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <motion.div className="space-y-4" variants={containerVariants}>
+                {metrics.recentPurchases.map((purchase, index) => (
+                  <motion.div
+                    key={purchase.id}
+                    variants={itemVariants}
+                    custom={index}
+                    whileHover={{
+                      scale: 1.01,
+                      backgroundColor: "rgba(0, 0, 0, 0.02)",
+                    }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <div className="flex items-center justify-between p-4 border rounded-lg transition-colors duration-150 hover:bg-accent/50">
+                      <div className="flex items-center space-x-4 flex-1">
+                        {/* Product Image */}
+                        <div
+                          className={`w-16 h-16 rounded-lg flex items-center justify-center ${getCategoryImageBackground(
+                            purchase.category
+                          )}`}
+                        >
+                          <CategoryIcon category={purchase.category} />
+                        </div>
+
+                        {/* Product Info */}
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-2">
+                            <h4 className="font-medium line-clamp-1">
+                              {purchase.item}
+                            </h4>
+                          </div>
+                          <p className="text-sm text-muted-foreground">
+                            {purchase.store} •{" "}
+                            {new Date(purchase.date).toLocaleDateString()}
+                          </p>
+                          <div className="flex items-center space-x-2 mt-1">
+                            <span className="text-sm font-medium">
+                              ${purchase.amount}
+                            </span>
+                            <span
+                              className={`text-sm font-medium ${getCarbonScoreColor(
+                                purchase.carbonScore
+                              )}`}
+                            >
+                              {purchase.carbonScore} kg CO₂
+                            </span>
+                            <CarbonScoreBadge score={purchase.carbonScore} />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Actions */}
+                      <div className="ml-4">
+                        <Button variant="outline" size="sm">
+                          {purchase.alternatives} Alternatives
+                        </Button>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </motion.div>
+              <motion.div className="mt-4 text-center" variants={itemVariants}>
+                <Link href="/dashboard/purchases">
+                  <motion.div
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    transition={{ duration: 0.1 }}
+                  >
+                    <Button variant="outline">View All Purchases</Button>
+                  </motion.div>
+                </Link>
+              </motion.div>
+            </CardContent>
+          </Card>
+        </motion.div>
+      </motion.div>
+    </motion.div>
   );
 }
