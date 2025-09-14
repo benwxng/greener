@@ -37,6 +37,8 @@ import {
   Bar,
 } from "recharts";
 import { useData } from "@/lib/contexts/data-context";
+import { amazonPurchases } from "@/lib/amazon-data-transformer";
+import Link from "next/link";
 
 // Memoized Category Icon Component
 const CategoryIcon = React.memo(({ category }: { category: string }) => {
@@ -331,7 +333,9 @@ export default function DashboardPage() {
             ))}
           </div>
           <div className="mt-4 text-center">
-            <Button variant="outline">View All Purchases</Button>
+            <Link href="/dashboard/purchases">
+              <Button variant="outline">View All Purchases</Button>
+            </Link>
           </div>
         </CardContent>
       </Card>
