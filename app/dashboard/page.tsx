@@ -106,7 +106,15 @@ const CarbonTrendChart = React.memo(
       <LineChart data={data}>
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey="month" />
-        <YAxis />
+        <YAxis
+          label={{
+            value: "kg CO₂",
+            angle: -90,
+            position: "insideLeft",
+            offset: 10,
+            style: { textAnchor: "middle" },
+          }}
+        />
         <Tooltip />
         <Line
           type="monotone"
@@ -139,7 +147,15 @@ const CategoryChart = React.memo(
       <BarChart data={data}>
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey="category" />
-        <YAxis />
+        <YAxis
+          label={{
+            value: "kg CO₂",
+            angle: -90,
+            position: "insideLeft",
+            offset: 10,
+            style: { textAnchor: "middle" },
+          }}
+        />
         <Tooltip />
         <Bar dataKey="emissions" fill="#ef4444" />
       </BarChart>
@@ -183,7 +199,9 @@ export default function DashboardPage() {
             <Leaf className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{metrics.currentScore}</div>
+            <div className="text-2xl font-bold">
+              {metrics.currentScore} kg CO₂
+            </div>
             <p className="text-xs text-muted-foreground">
               <span className="flex items-center">
                 <TrendingDown className="h-3 w-3 text-green-600 mr-1" />
@@ -201,7 +219,7 @@ export default function DashboardPage() {
             <Target className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{monthlyTarget}</div>
+            <div className="text-2xl font-bold">{monthlyTarget} kg CO₂</div>
             <div className="mt-2">
               <Progress value={Math.max(0, progressToTarget)} className="h-2" />
             </div>
