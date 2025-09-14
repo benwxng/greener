@@ -2,6 +2,7 @@
 
 import { AuthButton } from "@/components/auth-button";
 import { ThemeSwitcher } from "@/components/theme-switcher";
+import { KnotLogo } from "@/components/knot-logo";
 import { useAuth } from "@/lib/hooks/useAuth";
 import { DataProvider } from "@/lib/contexts/data-context";
 import Link from "next/link";
@@ -139,16 +140,14 @@ export default function DashboardLayout({
               <div className="border-t border-border p-4 flex-shrink-0">
                 {/* Carbon Score Widget */}
                 <div className="rounded-lg bg-green-50 dark:bg-green-950 p-3 mb-3">
-                  <div className="flex items-center space-x-2">
-                    <Leaf className="h-4 w-4 text-green-600 flex-shrink-0" />
-                    {!sidebarCollapsed && (
-                      <span className="text-xs font-medium text-green-800 dark:text-green-200">
-                        Monthly Score
-                      </span>
-                    )}
-                  </div>
                   {!sidebarCollapsed && (
-                    <div className="mt-1">
+                    <div className="text-center">
+                      <div className="flex items-center justify-center space-x-2 mb-2">
+                        <Leaf className="h-4 w-4 text-green-600 flex-shrink-0" />
+                        <span className="text-xs font-medium text-green-800 dark:text-green-200">
+                          Monthly Score
+                        </span>
+                      </div>
                       <div className="text-xl font-bold text-green-600">
                         7.2
                       </div>
@@ -158,7 +157,8 @@ export default function DashboardLayout({
                     </div>
                   )}
                   {sidebarCollapsed && (
-                    <div className="mt-1 text-center">
+                    <div className="text-center">
+                      <Leaf className="h-4 w-4 text-green-600 mx-auto mb-1" />
                       <div className="text-sm font-bold text-green-600">
                         7.2
                       </div>
@@ -166,9 +166,29 @@ export default function DashboardLayout({
                   )}
                 </div>
 
+                {/* Powered by Knot */}
+                {!sidebarCollapsed && (
+                  <div className="mb-3 p-3 bg-gray-50 dark:bg-gray-900 rounded-lg border">
+                    <div className="text-center">
+                      <div className="text-xs text-muted-foreground mb-2">Powered by</div>
+                      <div className="flex justify-center">
+                        <KnotLogo size="sm" />
+                      </div>
+                      <div className="text-xs text-muted-foreground mt-2">API</div>
+                    </div>
+                  </div>
+                )}
+                {sidebarCollapsed && (
+                  <div className="mb-3 p-2 bg-gray-50 dark:bg-gray-900 rounded-lg border">
+                    <div className="flex justify-center">
+                      <KnotLogo size="sm" showText={false} />
+                    </div>
+                  </div>
+                )}
+
                 {/* Theme Switcher and Auth Controls */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-center">
+                <div className="space-y-3">
+                  <div className="flex justify-center">
                     <ThemeSwitcher />
                   </div>
                   <div className="w-full">

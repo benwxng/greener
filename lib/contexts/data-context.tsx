@@ -94,8 +94,10 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       },
     ];
 
-    // Get recent purchases (last 3)
-    const recentPurchases = purchases.slice(0, 3);
+    // Get recent purchases (last 3, sorted by date)
+    const recentPurchases = purchases
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      .slice(0, 3);
 
     return {
       purchases,
