@@ -225,7 +225,7 @@ export default function SettingsPage() {
               <div className="flex items-center space-x-3">
                 <div className="w-6 h-6 relative">
                   <Image
-                    src="/components/knotLogo.jpg"
+                    src="/knotLogo.jpg"
                     alt="Knot Logo"
                     width={24}
                     height={24}

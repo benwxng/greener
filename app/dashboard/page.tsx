@@ -206,38 +206,6 @@ export default function DashboardPage() {
               purchases.
             </p>
           </div>
-          <div className="flex items-center space-x-2">
-            {/* Data Source Badge */}
-            {isUsingDatabase ? (
-              <Badge className="bg-green-100 text-green-800 flex items-center space-x-1">
-                <Database className="h-3 w-3" />
-                <span>Database</span>
-              </Badge>
-            ) : (
-              <Badge className="bg-blue-100 text-blue-800 flex items-center space-x-1">
-                <FileText className="h-3 w-3" />
-                <span>JSON</span>
-              </Badge>
-            )}
-
-            {/* Carbon Estimation Status */}
-            {isUsingDatabase && (
-              <>
-                {carbonEstimationStatus === "processing" && (
-                  <Badge className="bg-orange-100 text-orange-800 flex items-center space-x-1">
-                    <Loader2 className="h-3 w-3 animate-spin" />
-                    <span>AI Processing</span>
-                  </Badge>
-                )}
-                {carbonEstimationStatus === "complete" && (
-                  <Badge className="bg-purple-100 text-purple-800 flex items-center space-x-1">
-                    <Brain className="h-3 w-3" />
-                    <span>AI Enhanced</span>
-                  </Badge>
-                )}
-              </>
-            )}
-          </div>
         </div>
       </div>
 
@@ -305,7 +273,7 @@ export default function DashboardPage() {
             <p className="text-xs text-muted-foreground">
               <span className="flex items-center">
                 <Calendar className="h-3 w-3 mr-1" />
-                From Amazon
+                From Greener
               </span>
             </p>
           </CardContent>
