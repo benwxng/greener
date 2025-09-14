@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
+import { motion } from "framer-motion";
 import {
   Card,
   CardContent,
@@ -31,6 +32,44 @@ import {
   DollarSign,
 } from "lucide-react";
 import { useData } from "@/lib/contexts/data-context";
+
+// Animation variants
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      delayChildren: 0.1,
+      staggerChildren: 0.08,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { y: 20, opacity: 0 },
+  visible: {
+    y: 0,
+    opacity: 1,
+    transition: {
+      type: "spring" as const,
+      stiffness: 100,
+      damping: 12,
+    },
+  },
+};
+
+const cardVariants = {
+  hidden: { scale: 0.95, opacity: 0 },
+  visible: {
+    scale: 1,
+    opacity: 1,
+    transition: {
+      type: "spring" as const,
+      stiffness: 120,
+      damping: 15,
+    },
+  },
+};
 
 // Memoized Category Icon Component
 const CategoryIcon = React.memo(({ category }: { category: string }) => {
@@ -110,12 +149,17 @@ function getCategoryColor(category: string) {
 type SortOption = "newest" | "oldest" | "expensive" | "carbon";
 
 export default function PurchasesPage() {
+  const [mounted, setMounted] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [sortBy, setSortBy] = useState<SortOption>("newest");
 
   // Use shared data context
   const { purchases, metrics } = useData();
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Memoize categories calculation
   const categories = useMemo(
@@ -151,240 +195,305 @@ export default function PurchasesPage() {
     });
   }, [purchases, searchTerm, selectedCategory, sortBy]);
 
+  // Prevent hydration mismatch
+  if (!mounted) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">
+            Purchase History
+          </h1>
+          <p className="text-muted-foreground">
+            Track your past purchases and their environmental impact
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-6">
+    <motion.div
+      className="space-y-6"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
       {/* Header */}
-      <div>
+      <motion.div variants={itemVariants}>
         <h1 className="text-3xl font-bold tracking-tight">Purchase History</h1>
         <p className="text-muted-foreground">
           Track your past purchases and their environmental impact
         </p>
-      </div>
+      </motion.div>
 
       {/* Summary Stats */}
-      <div className="grid gap-4 md:grid-cols-3">
+      <motion.div
+        className="grid gap-4 md:grid-cols-3"
+        variants={containerVariants}
+      >
+        <motion.div variants={itemVariants}>
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            transition={{ duration: 0.2 }}
+          >
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Emissions Saved
+                </CardTitle>
+                <Leaf className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{128} kg</div>
+                <p className="text-xs text-muted-foreground">CO₂ equivalent</p>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </motion.div>
+
+        <motion.div variants={itemVariants}>
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            transition={{ duration: 0.2 }}
+          >
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Money Saved
+                </CardTitle>
+                <ShoppingCart className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-green-600">
+                  ${317.45}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  On sustainable choices
+                </p>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </motion.div>
+
+        <motion.div variants={itemVariants}>
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            transition={{ duration: 0.2 }}
+          >
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Total Purchases
+                </CardTitle>
+                <Calendar className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{purchases.length}</div>
+                <p className="text-xs text-muted-foreground">Items tracked</p>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </motion.div>
+      </motion.div>
+
+      {/* Filters and Search */}
+      <motion.div variants={itemVariants}>
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Emissions Saved
-            </CardTitle>
-            <Leaf className="h-4 w-4 text-muted-foreground" />
+          <CardHeader>
+            <CardTitle>Filter & Search</CardTitle>
+            <CardDescription>
+              Find specific purchases and analyze your spending patterns
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{128} kg</div>
-            <p className="text-xs text-muted-foreground">CO₂ equivalent</p>
-          </CardContent>
-        </Card>
+            <div className="space-y-4">
+              {/* Search and Sort Row */}
+              <div className="flex flex-col space-y-4 lg:flex-row lg:space-y-0 lg:space-x-4">
+                <div className="flex-1">
+                  <div className="relative">
+                    <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search purchases..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-8"
+                    />
+                  </div>
+                </div>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Money Saved</CardTitle>
-            <ShoppingCart className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">${317.45}</div>
-            <p className="text-xs text-muted-foreground">
-              {metrics.totalPurchases} purchases
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Cashback</CardTitle>
-            <DollarSign className="h-4 w-4" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">${80}</div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Filters */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Filter & Search</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {/* Search and Sort Row */}
-            <div className="flex flex-col space-y-4 lg:flex-row lg:space-y-0 lg:space-x-4">
-              <div className="flex-1">
-                <div className="relative">
-                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search purchases..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-8"
-                  />
+                {/* Sort Options */}
+                <div className="flex items-center space-x-2">
+                  <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground whitespace-nowrap">
+                    Sort by:
+                  </span>
+                  <div className="flex space-x-1">
+                    <Button
+                      variant={sortBy === "newest" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setSortBy("newest")}
+                      className="transition-colors duration-150"
+                    >
+                      <ArrowDown className="h-3 w-3 mr-1" />
+                      Newest
+                    </Button>
+                    <Button
+                      variant={sortBy === "oldest" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setSortBy("oldest")}
+                      className="transition-colors duration-150"
+                    >
+                      <ArrowUp className="h-3 w-3 mr-1" />
+                      Oldest
+                    </Button>
+                    <Button
+                      variant={sortBy === "expensive" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setSortBy("expensive")}
+                      className="transition-colors duration-150"
+                    >
+                      $
+                    </Button>
+                    <Button
+                      variant={sortBy === "carbon" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setSortBy("carbon")}
+                      className="transition-colors duration-150"
+                    >
+                      <Leaf className="h-3 w-3 mr-1" />
+                      CO₂
+                    </Button>
+                  </div>
                 </div>
               </div>
 
-              {/* Sort Options */}
-              <div className="flex items-center space-x-2">
-                <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm text-muted-foreground whitespace-nowrap">
-                  Sort by:
+              {/* Category Filters */}
+              <div className="flex flex-wrap gap-2">
+                <span className="text-sm text-muted-foreground flex items-center">
+                  <Filter className="h-4 w-4 mr-2" />
+                  Categories:
                 </span>
-                <div className="flex space-x-1">
+                {categories.map((category) => (
                   <Button
-                    variant={sortBy === "newest" ? "default" : "outline"}
+                    key={category}
+                    variant={
+                      selectedCategory === category ? "default" : "outline"
+                    }
                     size="sm"
-                    onClick={() => setSortBy("newest")}
+                    onClick={() => setSelectedCategory(category)}
                     className="transition-colors duration-150"
                   >
-                    <ArrowDown className="h-3 w-3 mr-1" />
-                    Newest
+                    {category}
                   </Button>
-                  <Button
-                    variant={sortBy === "oldest" ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setSortBy("oldest")}
-                    className="transition-colors duration-150"
-                  >
-                    <ArrowUp className="h-3 w-3 mr-1" />
-                    Oldest
-                  </Button>
-                  <Button
-                    variant={sortBy === "expensive" ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setSortBy("expensive")}
-                    className="transition-colors duration-150"
-                  >
-                    $
-                  </Button>
-                  <Button
-                    variant={sortBy === "carbon" ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setSortBy("carbon")}
-                    className="transition-colors duration-150"
-                  >
-                    <Leaf className="h-3 w-3 mr-1" />
-                    CO₂
-                  </Button>
-                </div>
+                ))}
               </div>
             </div>
-
-            {/* Category Filters */}
-            <div className="flex flex-wrap gap-2">
-              <span className="text-sm text-muted-foreground flex items-center">
-                <Filter className="h-4 w-4 mr-2" />
-                Categories:
-              </span>
-              {categories.map((category) => (
-                <Button
-                  key={category}
-                  variant={
-                    selectedCategory === category ? "default" : "outline"
-                  }
-                  size="sm"
-                  onClick={() => setSelectedCategory(category)}
-                  className="transition-colors duration-150"
-                >
-                  {category}
-                </Button>
-              ))}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </motion.div>
 
       {/* Purchase List */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Purchases ({filteredPurchases.length})</CardTitle>
-          <CardDescription>
-            {filteredPurchases.length === purchases.length
-              ? "All your Amazon purchases"
-              : `Showing ${filteredPurchases.length} of ${purchases.length} purchases`}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {filteredPurchases.map((purchase) => (
-              <div
-                key={purchase.id}
-                className="flex items-center space-x-4 p-4 border rounded-lg hover:bg-accent/50 transition-all duration-150"
-              >
-                {/* Product Image */}
-                <div
-                  className={`w-20 h-20 rounded-lg flex items-center justify-center ${getCategoryImageBackground(
-                    purchase.category
-                  )}`}
+      <motion.div variants={itemVariants}>
+        <Card>
+          <CardHeader>
+            <CardTitle>Purchases ({filteredPurchases.length})</CardTitle>
+            <CardDescription>
+              {filteredPurchases.length === purchases.length
+                ? "All your Amazon purchases"
+                : `Showing ${filteredPurchases.length} of ${purchases.length} purchases`}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <motion.div className="space-y-4" variants={containerVariants}>
+              {filteredPurchases.map((purchase, index) => (
+                <motion.div
+                  key={purchase.id}
+                  variants={itemVariants}
+                  custom={index}
+                  whileHover={{
+                    scale: 1.01,
+                    transition: { duration: 0.2 },
+                  }}
+                  className="flex items-center space-x-4 p-4 border rounded-lg hover:bg-accent/50 transition-all duration-150"
                 >
-                  <CategoryIcon category={purchase.category} />
-                </div>
-
-                {/* Product Info */}
-                <div className="flex-1 space-y-1">
-                  <div className="flex items-center space-x-2">
-                    <h4 className="font-medium">{purchase.item}</h4>
-                    <Badge className={getCategoryColor(purchase.category)}>
-                      {purchase.category}
-                    </Badge>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    {purchase.store} •{" "}
-                    {new Date(purchase.date).toLocaleDateString()}
-                  </p>
-                  <p className="text-sm text-muted-foreground line-clamp-2">
-                    {purchase.description}
-                  </p>
-                </div>
-
-                {/* Carbon Score */}
-                <div className="text-center min-w-[80px]">
+                  {/* Product Image */}
                   <div
-                    className={`text-lg font-bold ${getCarbonScoreColor(
-                      purchase.carbonScore
+                    className={`w-20 h-20 rounded-lg flex items-center justify-center ${getCategoryImageBackground(
+                      purchase.category
                     )}`}
                   >
-                    {purchase.carbonScore} kg
+                    <CategoryIcon category={purchase.category} />
                   </div>
-                  <div className="text-xs text-muted-foreground">CO₂</div>
-                  <CarbonScoreBadge score={purchase.carbonScore} />
-                </div>
 
-                {/* Price & Actions */}
-                <div className="text-right min-w-[140px] space-y-3">
-                  <div className="text-lg font-bold">
-                    ${purchase.amount.toFixed(2)}
+                  {/* Product Info */}
+                  <div className="flex-1 space-y-1">
+                    <div className="flex items-center space-x-2">
+                      <h4 className="font-medium">{purchase.item}</h4>
+                      <Badge className={getCategoryColor(purchase.category)}>
+                        {purchase.category}
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      {purchase.store} •{" "}
+                      {new Date(purchase.date).toLocaleDateString()}
+                    </p>
+                    <p className="text-sm text-muted-foreground line-clamp-2">
+                      {purchase.description}
+                    </p>
                   </div>
-                  <div className="flex flex-col space-y-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full justify-center transition-colors duration-150"
+
+                  {/* Carbon Score */}
+                  <div className="text-center min-w-[80px]">
+                    <div
+                      className={`text-lg font-bold ${getCarbonScoreColor(
+                        purchase.carbonScore
+                      )}`}
                     >
-                      {purchase.alternatives} Alternatives
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="w-full justify-center transition-colors duration-150"
-                    >
-                      <ExternalLink className="h-3 w-3 mr-1" />
-                      Details
-                    </Button>
+                      {purchase.carbonScore} kg
+                    </div>
+                    <div className="text-xs text-muted-foreground">CO₂</div>
+                    <CarbonScoreBadge score={purchase.carbonScore} />
                   </div>
-                </div>
+
+                  {/* Price & Actions */}
+                  <div className="text-right min-w-[140px] space-y-3">
+                    <div className="text-lg font-bold">
+                      ${purchase.amount.toFixed(2)}
+                    </div>
+                    <div className="flex flex-col space-y-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="w-full justify-center transition-colors duration-150"
+                      >
+                        {purchase.alternatives} Alternatives
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="w-full justify-center transition-colors duration-150"
+                      >
+                        <ExternalLink className="h-3 w-3 mr-1" />
+                        Details
+                      </Button>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </motion.div>
+
+            {filteredPurchases.length === 0 && (
+              <div className="text-center py-8">
+                <ShoppingCart className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-medium mb-2">No purchases found</h3>
+                <p className="text-muted-foreground">
+                  Try adjusting your search or filter criteria
+                </p>
               </div>
-            ))}
-          </div>
-
-          {filteredPurchases.length === 0 && (
-            <div className="text-center py-8">
-              <ShoppingCart className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-medium mb-2">No purchases found</h3>
-              <p className="text-muted-foreground">
-                Try adjusting your search or filter criteria
-              </p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    </div>
+            )}
+          </CardContent>
+        </Card>
+      </motion.div>
+    </motion.div>
   );
 }

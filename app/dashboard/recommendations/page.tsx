@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
+import { motion } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -15,6 +16,44 @@ import {
   CheckCircle,
   AlertCircle,
 } from "lucide-react";
+
+// Animation variants
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      delayChildren: 0.1,
+      staggerChildren: 0.1,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { y: 30, opacity: 0 },
+  visible: {
+    y: 0,
+    opacity: 1,
+    transition: {
+      type: "spring" as const,
+      stiffness: 100,
+      damping: 12,
+    },
+  },
+};
+
+const cardVariants = {
+  hidden: { scale: 0.95, opacity: 0 },
+  visible: {
+    scale: 1,
+    opacity: 1,
+    transition: {
+      type: "spring" as const,
+      stiffness: 120,
+      damping: 15,
+    },
+  },
+};
 
 // Mock recommendations data
 const recommendations = [
@@ -157,8 +196,13 @@ function getSustainabilityBadge(score: number) {
 }
 
 export default function RecommendationsPage() {
+  const [mounted, setMounted] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [savedItems, setSavedItems] = useState<Set<number>>(new Set());
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const filteredRecommendations = recommendations.filter(
     (rec) => selectedCategory === "All" || rec.category === selectedCategory
@@ -183,302 +227,342 @@ export default function RecommendationsPage() {
     setSavedItems(newSaved);
   };
 
+  // Prevent hydration mismatch
+  if (!mounted) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">
+            Sustainable Recommendations
+          </h1>
+          <p className="text-muted-foreground">
+            Discover eco-friendly alternatives to your recent purchases
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="space-y-6">
+    <motion.div
+      className="space-y-6"
+      variants={containerVariants}
+      initial="hidden"
+      animate="visible"
+    >
       {/* Header */}
-      <div>
+      <motion.div variants={itemVariants}>
         <h1 className="text-3xl font-bold tracking-tight">
           Sustainable Recommendations
         </h1>
         <p className="text-muted-foreground">
           Discover eco-friendly alternatives to your recent purchases
         </p>
-      </div>
+      </motion.div>
 
       {/* Impact Summary */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Potential Savings
-            </CardTitle>
-            <TrendingDown className="h-4 w-4 text-green-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">
-              $
-              {totalSavings > 0
-                ? totalSavings.toFixed(2)
-                : `+${Math.abs(totalSavings).toFixed(2)}`}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {totalSavings > 0
-                ? "Save money while saving the planet"
-                : "Small investment for impact"}
-            </p>
-          </CardContent>
-        </Card>
+      <motion.div
+        className="grid gap-4 md:grid-cols-2"
+        variants={containerVariants}
+      >
+        <motion.div variants={itemVariants}>
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            transition={{ duration: 0.2 }}
+          >
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Potential Savings
+                </CardTitle>
+                <TrendingDown className="h-4 w-4 text-green-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-green-600">
+                  $
+                  {totalSavings > 0
+                    ? totalSavings.toFixed(2)
+                    : `+${Math.abs(totalSavings).toFixed(2)}`}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {totalSavings > 0
+                    ? "Save money while saving the planet"
+                    : "Small investment for impact"}
+                </p>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </motion.div>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Carbon Reduction
-            </CardTitle>
-            <Leaf className="h-4 w-4 text-green-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">
-              -{totalCarbonReduction.toFixed(1)} kg
-            </div>
-            <p className="text-xs text-muted-foreground">
-              CO₂ equivalent reduction
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Recommendations
-            </CardTitle>
-            <ShoppingCart className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {filteredRecommendations.length}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Based on your purchases
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+        <motion.div variants={itemVariants}>
+          <motion.div
+            whileHover={{ scale: 1.02 }}
+            transition={{ duration: 0.2 }}
+          >
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Carbon Reduction
+                </CardTitle>
+                <Leaf className="h-4 w-4 text-green-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-green-600">
+                  -{totalCarbonReduction.toFixed(1)} kg
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  CO₂ equivalent reduction
+                </p>
+              </CardContent>
+            </Card>
+          </motion.div>
+        </motion.div>
+      </motion.div>
 
       {/* Category Filter */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex space-x-2">
-            {categories.map((category) => (
-              <Button
-                key={category}
-                variant={selectedCategory === category ? "default" : "outline"}
-                size="sm"
-                onClick={() => setSelectedCategory(category)}
-              >
-                {category}
-              </Button>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Recommendations List */}
-      <div className="space-y-6">
-        {filteredRecommendations.map((rec) => (
-          <Card key={rec.id} className="overflow-hidden">
-            <CardContent className="p-6">
-              <div className="flex space-x-6">
-                {/* Product Image */}
-                <div className="w-32 h-32 bg-muted rounded-lg overflow-hidden flex items-center justify-center flex-shrink-0">
-                  {rec.image ? (
-                    <Image
-                      src={rec.image}
-                      alt={rec.title}
-                      width={128}
-                      height={128}
-                      className="object-cover w-full h-full"
-                      onError={(e) => {
-                        // Fallback to shopping cart icon if image fails to load
-                        e.currentTarget.style.display = "none";
-                        e.currentTarget.nextElementSibling?.classList.remove(
-                          "hidden"
-                        );
-                      }}
-                    />
-                  ) : null}
-                  <ShoppingCart
-                    className={`h-8 w-8 text-muted-foreground ${
-                      rec.image ? "hidden" : ""
-                    }`}
-                  />
-                </div>
-
-                {/* Main Content */}
-                <div className="flex-1 space-y-4">
-                  {/* Header */}
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h3 className="text-xl font-semibold">{rec.title}</h3>
-                      <p className="text-muted-foreground">{rec.reason}</p>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => toggleSaved(rec.id)}
-                      className={savedItems.has(rec.id) ? "text-red-500" : ""}
-                    >
-                      <Heart
-                        className={`h-4 w-4 ${
-                          savedItems.has(rec.id) ? "fill-current" : ""
-                        }`}
-                      />
-                    </Button>
-                  </div>
-
-                  {/* Comparison */}
-                  <div className="grid gap-4 md:grid-cols-2">
-                    {/* Original Product */}
-                    <div className="p-4 bg-red-50 dark:bg-red-950/20 rounded-lg">
-                      <h4 className="font-medium mb-2">Current Choice</h4>
-                      <p className="text-sm font-medium">
-                        {rec.originalProduct}
-                      </p>
-                      <div className="mt-2 space-y-1">
-                        <div className="flex justify-between text-sm">
-                          <span>Price:</span>
-                          <span className="font-medium">
-                            ${rec.originalPrice}
-                          </span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span>Carbon:</span>
-                          <span
-                            className={`font-medium ${getCarbonScoreColor(
-                              rec.originalCarbon
-                            )}`}
-                          >
-                            {rec.originalCarbon} kg CO₂
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Recommended Product */}
-                    <div className="p-4 bg-green-50 dark:bg-green-950/20 rounded-lg">
-                      <h4 className="font-medium mb-2">Recommended</h4>
-                      <p className="text-sm font-medium">
-                        {rec.recommendedProduct}
-                      </p>
-                      <div className="mt-2 space-y-1">
-                        <div className="flex justify-between text-sm">
-                          <span>Price:</span>
-                          <span className="font-medium">
-                            ${rec.recommendedPrice}
-                          </span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span>Carbon:</span>
-                          <span
-                            className={`font-medium ${getCarbonScoreColor(
-                              rec.recommendedCarbon
-                            )}`}
-                          >
-                            {rec.recommendedCarbon} kg CO₂
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Impact Metrics */}
-                  <div className="flex space-x-6">
-                    <div className="text-center">
-                      <div
-                        className={`text-lg font-bold ${
-                          rec.savings > 0 ? "text-green-600" : "text-red-600"
-                        }`}
-                      >
-                        {rec.savings > 0
-                          ? `$${rec.savings.toFixed(2)}`
-                          : `-$${Math.abs(rec.savings).toFixed(2)}`}
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        {rec.savings > 0 ? "Savings" : "Extra Cost"}
-                      </div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-lg font-bold text-green-600">
-                        -{rec.carbonReduction.toFixed(1)} kg
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        Carbon Reduction
-                      </div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-lg font-bold">
-                        {rec.sustainabilityScore}/10
-                      </div>
-                      <div className="text-xs text-muted-foreground">
-                        Sustainability
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Features & Rating */}
-                  <div className="space-y-3">
-                    <div className="flex items-center space-x-4">
-                      <div className="flex items-center space-x-1">
-                        <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                        <span className="font-medium">{rec.rating}</span>
-                        <span className="text-sm text-muted-foreground">
-                          ({rec.reviews.toLocaleString()} reviews)
-                        </span>
-                      </div>
-                      {getSustainabilityBadge(rec.sustainabilityScore)}
-                    </div>
-
-                    <div className="flex flex-wrap gap-2">
-                      {rec.features.map((feature, index) => (
-                        <Badge
-                          key={index}
-                          variant="outline"
-                          className="text-xs"
-                        >
-                          <CheckCircle className="h-3 w-3 mr-1" />
-                          {feature}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex space-x-3">
-                    <Button className="flex-1" asChild>
-                      <a
-                        href={rec.affiliateLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        <ExternalLink className="h-4 w-4 mr-2" />
-                        Shop
-                      </a>
-                    </Button>
-                    <Button variant="outline">
-                      <AlertCircle className="h-4 w-4 mr-2" />
-                      Learn More
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {filteredRecommendations.length === 0 && (
+      <motion.div variants={itemVariants}>
         <Card>
-          <CardContent className="text-center py-12">
-            <Leaf className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-medium mb-2">
-              No recommendations found
-            </h3>
-            <p className="text-muted-foreground">
-              Try a different category or make some purchases to get
-              personalized recommendations.
-            </p>
+          <CardHeader>
+            <CardTitle>Filter by Category</CardTitle>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <div className="flex space-x-2">
+              {categories.map((category) => (
+                <Button
+                  key={category}
+                  variant={
+                    selectedCategory === category ? "default" : "outline"
+                  }
+                  size="sm"
+                  onClick={() => setSelectedCategory(category)}
+                >
+                  {category}
+                </Button>
+              ))}
+            </div>
           </CardContent>
         </Card>
+      </motion.div>
+
+      {/* Recommendations List */}
+      <motion.div className="space-y-6" variants={containerVariants}>
+        {filteredRecommendations.map((rec, index) => (
+          <motion.div
+            key={rec.id}
+            variants={itemVariants}
+            custom={index}
+            whileHover={{
+              scale: 1.01,
+              transition: { duration: 0.2 },
+            }}
+          >
+            <Card className="overflow-hidden">
+              <CardContent className="p-6">
+                <div className="flex space-x-6">
+                  {/* Product Image */}
+                  <div className="w-32 h-32 bg-muted rounded-lg overflow-hidden flex items-center justify-center flex-shrink-0">
+                    {rec.image ? (
+                      <Image
+                        src={rec.image}
+                        alt={rec.title}
+                        width={128}
+                        height={128}
+                        className="object-cover w-full h-full"
+                        onError={(e) => {
+                          // Fallback to shopping cart icon if image fails to load
+                          e.currentTarget.style.display = "none";
+                          e.currentTarget.nextElementSibling?.classList.remove(
+                            "hidden"
+                          );
+                        }}
+                      />
+                    ) : null}
+                    <ShoppingCart
+                      className={`h-8 w-8 text-muted-foreground ${
+                        rec.image ? "hidden" : ""
+                      }`}
+                    />
+                  </div>
+
+                  {/* Main Content */}
+                  <div className="flex-1 space-y-4">
+                    {/* Header */}
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <h3 className="text-xl font-semibold">{rec.title}</h3>
+                        <p className="text-muted-foreground">{rec.reason}</p>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => toggleSaved(rec.id)}
+                        className={savedItems.has(rec.id) ? "text-red-500" : ""}
+                      >
+                        <Heart
+                          className={`h-4 w-4 ${
+                            savedItems.has(rec.id) ? "fill-current" : ""
+                          }`}
+                        />
+                      </Button>
+                    </div>
+
+                    {/* Comparison */}
+                    <div className="grid gap-4 md:grid-cols-2">
+                      {/* Original Product */}
+                      <div className="p-4 bg-red-50 dark:bg-red-950/20 rounded-lg">
+                        <h4 className="font-medium mb-2">Current Choice</h4>
+                        <p className="text-sm font-medium">
+                          {rec.originalProduct}
+                        </p>
+                        <div className="mt-2 space-y-1">
+                          <div className="flex justify-between text-sm">
+                            <span>Price:</span>
+                            <span className="font-medium">
+                              ${rec.originalPrice}
+                            </span>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span>Carbon:</span>
+                            <span
+                              className={`font-medium ${getCarbonScoreColor(
+                                rec.originalCarbon
+                              )}`}
+                            >
+                              {rec.originalCarbon} kg CO₂
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Recommended Product */}
+                      <div className="p-4 bg-green-50 dark:bg-green-950/20 rounded-lg">
+                        <h4 className="font-medium mb-2">Recommended</h4>
+                        <p className="text-sm font-medium">
+                          {rec.recommendedProduct}
+                        </p>
+                        <div className="mt-2 space-y-1">
+                          <div className="flex justify-between text-sm">
+                            <span>Price:</span>
+                            <span className="font-medium">
+                              ${rec.recommendedPrice}
+                            </span>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span>Carbon:</span>
+                            <span
+                              className={`font-medium ${getCarbonScoreColor(
+                                rec.recommendedCarbon
+                              )}`}
+                            >
+                              {rec.recommendedCarbon} kg CO₂
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Impact Metrics */}
+                    <div className="flex space-x-6">
+                      <div className="text-center">
+                        <div
+                          className={`text-lg font-bold ${
+                            rec.savings > 0 ? "text-green-600" : "text-red-600"
+                          }`}
+                        >
+                          {rec.savings > 0
+                            ? `$${rec.savings.toFixed(2)}`
+                            : `-$${Math.abs(rec.savings).toFixed(2)}`}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {rec.savings > 0 ? "Savings" : "Extra Cost"}
+                        </div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-lg font-bold text-green-600">
+                          -{rec.carbonReduction.toFixed(1)} kg
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          Carbon Reduction
+                        </div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-lg font-bold">
+                          {rec.sustainabilityScore}/10
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          Sustainability
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Features & Rating */}
+                    <div className="space-y-3">
+                      <div className="flex items-center space-x-4">
+                        <div className="flex items-center space-x-1">
+                          <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                          <span className="font-medium">{rec.rating}</span>
+                          <span className="text-sm text-muted-foreground">
+                            ({rec.reviews.toLocaleString()} reviews)
+                          </span>
+                        </div>
+                        {getSustainabilityBadge(rec.sustainabilityScore)}
+                      </div>
+
+                      <div className="flex flex-wrap gap-2">
+                        {rec.features.map((feature, index) => (
+                          <Badge
+                            key={index}
+                            variant="outline"
+                            className="text-xs"
+                          >
+                            <CheckCircle className="h-3 w-3 mr-1" />
+                            {feature}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex space-x-3">
+                      <Button className="flex-1" asChild>
+                        <a
+                          href={rec.affiliateLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <ExternalLink className="h-4 w-4 mr-2" />
+                          Shop
+                        </a>
+                      </Button>
+                      <Button variant="outline">
+                        <AlertCircle className="h-4 w-4 mr-2" />
+                        Learn More
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        ))}
+      </motion.div>
+
+      {filteredRecommendations.length === 0 && (
+        <motion.div variants={itemVariants}>
+          <Card>
+            <CardContent className="text-center py-12">
+              <Leaf className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-medium mb-2">
+                No recommendations found
+              </h3>
+              <p className="text-muted-foreground">
+                Try a different category or make some purchases to get
+                personalized recommendations.
+              </p>
+            </CardContent>
+          </Card>
+        </motion.div>
       )}
-    </div>
+    </motion.div>
   );
 }
