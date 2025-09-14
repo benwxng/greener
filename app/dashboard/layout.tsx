@@ -136,48 +136,49 @@ export default function DashboardLayout({
                 })}
               </div>
 
+              {/* Carbon Score Widget */}
+              <div className="rounded-lg bg-green-50 dark:bg-green-950 p-3 mb-3 mx-3">
+                {!sidebarCollapsed && (
+                  <div className="text-center">
+                    <div className="flex items-center justify-center space-x-2 mb-2">
+                      <Leaf className="h-4 w-4 text-green-600 flex-shrink-0" />
+                      <span className="text-xs font-medium text-green-800 dark:text-green-200">
+                        Monthly Score
+                      </span>
+                    </div>
+                    <div className="text-xl font-bold text-green-600">7.2</div>
+                    <div className="text-xs text-green-600">
+                      Better than last month
+                    </div>
+                  </div>
+                )}
+                {sidebarCollapsed && (
+                  <div className="text-center">
+                    <Leaf className="h-4 w-4 text-green-600 mx-auto mb-1" />
+                    <div className="text-sm font-bold text-green-600">7.2</div>
+                  </div>
+                )}
+              </div>
+
               {/* Bottom Section - Always Visible */}
               <div className="border-t border-border p-4 flex-shrink-0">
-                {/* Carbon Score Widget */}
-                <div className="rounded-lg bg-green-50 dark:bg-green-950 p-3 mb-3">
-                  {!sidebarCollapsed && (
-                    <div className="text-center">
-                      <div className="flex items-center justify-center space-x-2 mb-2">
-                        <Leaf className="h-4 w-4 text-green-600 flex-shrink-0" />
-                        <span className="text-xs font-medium text-green-800 dark:text-green-200">
-                          Monthly Score
-                        </span>
-                      </div>
-                      <div className="text-xl font-bold text-green-600">
-                        7.2
-                      </div>
-                      <div className="text-xs text-green-600">
-                        Better than last month
-                      </div>
-                    </div>
-                  )}
-                  {sidebarCollapsed && (
-                    <div className="text-center">
-                      <Leaf className="h-4 w-4 text-green-600 mx-auto mb-1" />
-                      <div className="text-sm font-bold text-green-600">
-                        7.2
-                      </div>
-                    </div>
-                  )}
-                </div>
-
                 {/* Powered by Knot */}
                 {!sidebarCollapsed && (
                   <div className="mb-3 p-3 bg-gray-50 dark:bg-gray-900 rounded-lg border">
                     <div className="text-center">
-                      <div className="text-xs text-muted-foreground mb-2">Powered by</div>
+                      <div className="text-xs text-muted-foreground mb-2">
+                        Powered by
+                      </div>
                       <div className="flex justify-center">
                         <KnotLogo size="sm" />
                       </div>
-                      <div className="text-xs text-muted-foreground mt-2">API</div>
+                      <div className="text-xs text-muted-foreground mt-2">
+                        API
+                      </div>
                     </div>
                   </div>
                 )}
+
                 {sidebarCollapsed && (
                   <div className="mb-3 p-2 bg-gray-50 dark:bg-gray-900 rounded-lg border">
                     <div className="flex justify-center">
