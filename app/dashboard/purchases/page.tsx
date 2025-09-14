@@ -235,11 +235,13 @@ export default function PurchasesPage() {
                   />
                 </div>
               </div>
-              
+
               {/* Sort Options */}
               <div className="flex items-center space-x-2">
                 <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
-                <span className="text-sm text-muted-foreground whitespace-nowrap">Sort by:</span>
+                <span className="text-sm text-muted-foreground whitespace-nowrap">
+                  Sort by:
+                </span>
                 <div className="flex space-x-1">
                   <Button
                     variant={sortBy === "newest" ? "default" : "outline"}
@@ -279,7 +281,7 @@ export default function PurchasesPage() {
                 </div>
               </div>
             </div>
-            
+
             {/* Category Filters */}
             <div className="flex flex-wrap gap-2">
               <span className="text-sm text-muted-foreground flex items-center">
