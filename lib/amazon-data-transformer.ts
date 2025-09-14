@@ -63,7 +63,11 @@ const categorizeProduct = (productName: string): string => {
 };
 
 // Simple carbon score estimation based on category and price
-const estimateCarbonScore = (category: string, price: number): number => {
+const estimateCarbonScore = (
+  category: string,
+  price: number,
+  quantity: number
+): number => {
   const baseScores = {
     Electronics: 0.008, // Higher carbon per dollar
     Fashion: 0.006,
@@ -73,55 +77,53 @@ const estimateCarbonScore = (category: string, price: number): number => {
   };
 
   const multiplier = baseScores[category as keyof typeof baseScores] || 0.005;
-  const score = price * multiplier;
+  const score = price * multiplier * quantity; // Factor in quantity
 
-  // Add some randomness and cap between 0.5 and 10
+  // Add some randomness and cap between 0.5 and 15 (higher max for multiple items)
   const randomFactor = 0.8 + Math.random() * 0.4; // 0.8 to 1.2
-  return Math.max(0.5, Math.min(10, score * randomFactor));
+  return Math.max(0.5, Math.min(15, score * randomFactor));
 };
-
-// Cache the transformed data to avoid recalculating
-let cachedPurchases: Purchase[] | null = null;
 
 // Transform Amazon data to Purchase format
 export const transformAmazonDataToPurchases = (): Purchase[] => {
-  // Return cached result if available
-  if (cachedPurchases) {
-    return cachedPurchases;
-  }
-
   const purchases: Purchase[] = [];
   let purchaseId = 1;
 
-  amazonData.transactions.forEach((transaction) => {
-    transaction.products.forEach((product) => {
-      const category = categorizeProduct(product.name);
-      const unitPrice = parseFloat(product.price.unit_price);
-      const carbonScore = estimateCarbonScore(category, unitPrice);
+  // Process transactions in reverse order so last JSON entries appear first
+  const reversedTransactions = [...amazonData.transactions].reverse();
 
-      // Create individual purchases for each quantity
-      for (let i = 0; i < product.quantity; i++) {
-        purchases.push({
-          id: purchaseId++,
-          item: product.name,
-          store: amazonData.merchant.name,
-          category: category,
-          amount: unitPrice,
-          carbonScore: Math.round(carbonScore * 10) / 10, // Round to 1 decimal
-          date: transaction.datetime.split("T")[0], // Extract date part
-          description: `${product.name} from ${amazonData.merchant.name}`,
-          alternatives: Math.floor(Math.random() * 8) + 2, // Random between 2-9
-        });
-      }
+  reversedTransactions.forEach((transaction) => {
+    // Also reverse products within each transaction
+    const reversedProducts = [...transaction.products].reverse();
+
+    reversedProducts.forEach((product) => {
+      const category = categorizeProduct(product.name);
+      const totalPrice = parseFloat(product.price.total);
+      const unitPrice = parseFloat(product.price.unit_price);
+      const quantity = product.quantity;
+      const carbonScore = estimateCarbonScore(category, totalPrice, 1); // Use total price, quantity 1
+
+      // Create single purchase entry with actual quantity and total price
+      purchases.push({
+        id: purchaseId++,
+        item: quantity > 1 ? `${product.name} (×${quantity})` : product.name,
+        store: amazonData.merchant.name,
+        category: category,
+        amount: totalPrice, // Use total price instead of unit price
+        carbonScore: Math.round(carbonScore * 10) / 10, // Round to 1 decimal
+        date: transaction.datetime.split("T")[0], // Extract date part
+        description:
+          quantity > 1
+            ? `${product.name} (${quantity} items) from ${amazonData.merchant.name}`
+            : `${product.name} from ${amazonData.merchant.name}`,
+        alternatives: Math.floor(Math.random() * 8) + 2, // Random between 2-9
+      });
     });
   });
 
-  // Sort by date (newest first) and cache
-  cachedPurchases = purchases.sort(
-    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-  );
-  return cachedPurchases;
+  // Return in the order processed (last JSON entries first)
+  return purchases;
 };
 
-// Export the transformed data
+// Export the transformed data (recalculated each time)
 export const amazonPurchases = transformAmazonDataToPurchases();

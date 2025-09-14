@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React from "react";
 import {
   Card,
   CardContent,
@@ -36,6 +36,7 @@ import {
   BarChart,
   Bar,
 } from "recharts";
+import { useData } from "@/lib/contexts/data-context";
 import { amazonPurchases } from "@/lib/amazon-data-transformer";
 import Link from "next/link";
 
@@ -94,7 +95,7 @@ const CarbonScoreBadge = React.memo(({ score }: { score: number }) => {
 
 CarbonScoreBadge.displayName = "CarbonScoreBadge";
 
-// Memoized Chart Components
+// Memoized Chart Components for better performance
 const CarbonTrendChart = React.memo(
   ({
     data,
@@ -155,62 +156,13 @@ function getCarbonScoreColor(score: number) {
 }
 
 export default function DashboardPage() {
-  // Memoize expensive calculations
-  const metrics = useMemo(() => {
-    const purchases = amazonPurchases;
-    const totalSpent = purchases.reduce((sum, p) => sum + p.amount, 0);
-    const totalEmissions = purchases.reduce((sum, p) => sum + p.carbonScore, 0);
-    const currentScore = totalEmissions;
-
-    // Group by category for category data
-    const categoryTotals: {
-      [key: string]: { emissions: number; count: number };
-    } = {};
-    purchases.forEach((p) => {
-      if (!categoryTotals[p.category]) {
-        categoryTotals[p.category] = { emissions: 0, count: 0 };
-      }
-      categoryTotals[p.category].emissions += p.carbonScore;
-      categoryTotals[p.category].count += 1;
-    });
-
-    const categoryData = Object.entries(categoryTotals)
-      .map(([category, data]) => ({
-        category,
-        emissions: Math.round(data.emissions * 10) / 10,
-        percentage: Math.round((data.emissions / totalEmissions) * 100),
-      }))
-      .sort((a, b) => b.emissions - a.emissions);
-
-    // Generate trend data (mock for now, but based on real total)
-    const carbonTrendData = [
-      { month: "Jan", emissions: currentScore * 1.2, target: 10 },
-      { month: "Feb", emissions: currentScore * 1.1, target: 10 },
-      { month: "Mar", emissions: currentScore * 1.05, target: 10 },
-      { month: "Apr", emissions: currentScore * 1.02, target: 10 },
-      { month: "May", emissions: currentScore * 1.01, target: 10 },
-      { month: "Jun", emissions: currentScore, target: 10 },
-    ];
-
-    // Get recent purchases (last 3)
-    const recentPurchases = purchases.slice(0, 3);
-
-    return {
-      currentScore: Math.round(currentScore * 10) / 10,
-      totalSpent: Math.round(totalSpent * 100) / 100,
-      totalPurchases: purchases.length,
-      categoryData,
-      carbonTrendData,
-      recentPurchases,
-    };
-  }, []); // Empty dependency array since amazonPurchases is static
+  // Use shared data context - no more expensive calculations!
+  const { metrics } = useData();
 
   const monthlyTarget = 10.0;
   const improvement = -0.8; // negative means improvement
-  const progressToTarget = useMemo(
-    () => ((monthlyTarget - metrics.currentScore) / monthlyTarget) * 100,
-    [metrics.currentScore]
-  );
+  const progressToTarget =
+    ((monthlyTarget - metrics.currentScore) / monthlyTarget) * 100;
 
   return (
     <div className="space-y-6">

@@ -29,7 +29,7 @@ import {
   ArrowUp,
   ArrowDown,
 } from "lucide-react";
-import { amazonPurchases } from "@/lib/amazon-data-transformer";
+import { useData } from "@/lib/contexts/data-context";
 
 // Memoized Category Icon Component
 const CategoryIcon = React.memo(({ category }: { category: string }) => {
@@ -113,8 +113,8 @@ export default function PurchasesPage() {
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [sortBy, setSortBy] = useState<SortOption>("newest");
 
-  // Use real Amazon purchase data
-  const purchases = amazonPurchases;
+  // Use shared data context
+  const { purchases, metrics } = useData();
 
   // Memoize categories calculation
   const categories = useMemo(
@@ -150,19 +150,6 @@ export default function PurchasesPage() {
     });
   }, [purchases, searchTerm, selectedCategory, sortBy]);
 
-  // Memoize summary calculations
-  const { totalSpent, totalEmissions, averageScore } = useMemo(() => {
-    const totalSpent = purchases.reduce((sum, p) => sum + p.amount, 0);
-    const totalEmissions = purchases.reduce((sum, p) => sum + p.carbonScore, 0);
-    const averageScore = totalEmissions / purchases.length;
-
-    return {
-      totalSpent,
-      totalEmissions,
-      averageScore,
-    };
-  }, [purchases]);
-
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -181,9 +168,9 @@ export default function PurchasesPage() {
             <ShoppingCart className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">${totalSpent.toFixed(2)}</div>
+            <div className="text-2xl font-bold">${metrics.totalSpent}</div>
             <p className="text-xs text-muted-foreground">
-              {purchases.length} purchases from Amazon
+              {metrics.totalPurchases} purchases from Amazon
             </p>
           </CardContent>
         </Card>
@@ -197,7 +184,7 @@ export default function PurchasesPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {totalEmissions.toFixed(1)} kg
+              {metrics.totalEmissions} kg
             </div>
             <p className="text-xs text-muted-foreground">CO₂ equivalent</p>
           </CardContent>
@@ -209,7 +196,7 @@ export default function PurchasesPage() {
             <TrendingDown className="h-4 w-4 text-green-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{averageScore.toFixed(1)}</div>
+            <div className="text-2xl font-bold">{metrics.averageScore}</div>
             <p className="text-xs text-muted-foreground">kg CO₂ per purchase</p>
           </CardContent>
         </Card>
