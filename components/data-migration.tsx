@@ -205,8 +205,8 @@ export function DataMigration() {
             {errorDetails || result?.error || "Unknown error occurred"}
           </div>
           <div className="text-xs text-red-600">
-            💡 Try running the database fix script first, then use "Direct
-            Migration"
+            💡 Try running the database fix script first, then use &apos;Direct
+            Migration&apos;
           </div>
           <div className="flex flex-wrap gap-2">
             <Button
@@ -242,8 +242,8 @@ export function DataMigration() {
           <CardTitle>Migrate Amazon Data</CardTitle>
         </div>
         <CardDescription>
-          Move your Amazon purchase data to the database. Try "Direct Migration"
-          first for best results.
+          Move your Amazon purchase data to the database. Try &apos;Direct
+          Migration&apos; first for best results.
         </CardDescription>
       </CardHeader>
       <CardContent>
