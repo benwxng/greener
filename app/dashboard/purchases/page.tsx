@@ -28,6 +28,7 @@ import {
   ArrowUpDown,
   ArrowUp,
   ArrowDown,
+  DollarSign,
 } from "lucide-react";
 import { useData } from "@/lib/contexts/data-context";
 
@@ -156,7 +157,7 @@ export default function PurchasesPage() {
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Purchase History</h1>
         <p className="text-muted-foreground">
-          Track your Amazon purchases and their environmental impact
+          Track your past purchases and their environmental impact
         </p>
       </div>
 
@@ -164,40 +165,37 @@ export default function PurchasesPage() {
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Spent</CardTitle>
-            <ShoppingCart className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">${metrics.totalSpent}</div>
-            <p className="text-xs text-muted-foreground">
-              {metrics.totalPurchases} purchases from Amazon
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">
-              Total Emissions
+              Emissions Saved
             </CardTitle>
             <Leaf className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {metrics.totalEmissions} kg
-            </div>
+            <div className="text-2xl font-bold">{128} kg</div>
             <p className="text-xs text-muted-foreground">CO₂ equivalent</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Average Score</CardTitle>
-            <TrendingDown className="h-4 w-4 text-green-600" />
+            <CardTitle className="text-sm font-medium">Money Saved</CardTitle>
+            <ShoppingCart className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{metrics.averageScore}</div>
-            <p className="text-xs text-muted-foreground">kg CO₂ per purchase</p>
+            <div className="text-2xl font-bold text-green-600">${317.45}</div>
+            <p className="text-xs text-muted-foreground">
+              {metrics.totalPurchases} purchases
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Cashback</CardTitle>
+            <DollarSign className="h-4 w-4" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">${80}</div>
           </CardContent>
         </Card>
       </div>

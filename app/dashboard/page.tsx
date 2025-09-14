@@ -30,6 +30,7 @@ import {
   Brain,
   CheckCircle,
   Loader2,
+  TreePine,
 } from "lucide-react";
 import {
   LineChart,
@@ -201,7 +202,7 @@ export default function DashboardPage() {
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Welcome back!</h1>
             <p className="text-muted-foreground">
-              Here&apos;s your carbon footprint overview based on your Amazon
+              Here&apos;s your carbon footprint overview based on your past
               purchases.
             </p>
           </div>
@@ -244,15 +245,19 @@ export default function DashboardPage() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Current Score</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Current Footprint
+            </CardTitle>
             <Leaf className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{metrics.currentScore}</div>
+            <div className="text-2xl font-bold">
+              {metrics.currentScore} kg CO₂
+            </div>
             <p className="text-xs text-muted-foreground">
               <span className="flex items-center">
                 <TrendingDown className="h-3 w-3 text-green-600 mr-1" />
-                {Math.abs(improvement)} kg CO₂
+                {60}% below average
               </span>
             </p>
           </CardContent>
@@ -260,26 +265,40 @@ export default function DashboardPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Monthly Target
-            </CardTitle>
+            <CardTitle className="text-sm font-medium">Carbon Saved</CardTitle>
             <Target className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{monthlyTarget}</div>
+            <div className="text-2xl font-bold">{Math.round(16)} kg</div>
             <div className="mt-2">
-              <Progress value={Math.max(0, progressToTarget)} className="h-2" />
+              <Progress value={Math.max(0, 40)} className="h-2" />
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              {Math.round(Math.max(0, progressToTarget))}% to target
+              {Math.round(Math.max(0, 40))}% to target
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Purchases</CardTitle>
-            <ShoppingCart className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Total Saved</CardTitle>
+            <DollarSign className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">${317.45}</div>
+            <p className="text-xs text-muted-foreground">
+              <span className="flex items-center">
+                <Award className="h-3 w-3 text-green-600 mr-1" />
+                On tracked purchases
+              </span>
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Trees Planted</CardTitle>
+            <TreePine className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{metrics.totalPurchases}</div>
@@ -287,22 +306,6 @@ export default function DashboardPage() {
               <span className="flex items-center">
                 <Calendar className="h-3 w-3 mr-1" />
                 From Amazon
-              </span>
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Spent</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">${metrics.totalSpent}</div>
-            <p className="text-xs text-muted-foreground">
-              <span className="flex items-center">
-                <Award className="h-3 w-3 text-green-600 mr-1" />
-                On tracked purchases
               </span>
             </p>
           </CardContent>

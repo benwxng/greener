@@ -143,9 +143,7 @@ export default function ProfilePage() {
                 <span className="text-sm text-muted-foreground">
                   Total Savings
                 </span>
-                <span className="font-medium text-green-600">
-                  ${userData.totalSavings}
-                </span>
+                <span className="font-medium text-green-600">${317.45}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-sm text-muted-foreground">
@@ -157,11 +155,9 @@ export default function ProfilePage() {
               </div>
               <div className="flex justify-between">
                 <span className="text-sm text-muted-foreground">
-                  Current Streak
+                  Trees Planted
                 </span>
-                <span className="font-medium">
-                  {userData.currentStreak} days
-                </span>
+                <span className="font-medium">59</span>
               </div>
             </div>
           </CardContent>

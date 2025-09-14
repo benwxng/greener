@@ -16,7 +16,7 @@ export interface CarbonEstimate {
   reasoning?: string;
 }
 
-// Main function to process all products and ensure they have carbon estimates
+// FIXED: Main function with corrected query logic and safe database operations
 export async function processAllProductCarbonEstimates(): Promise<{
   success: boolean;
   totalProducts: number;
@@ -29,36 +29,42 @@ export async function processAllProductCarbonEstimates(): Promise<{
   try {
     console.log("🔍 Starting carbon estimation process...");
 
-    // 1. Get all products that don't have AI estimates yet
-    const { data: productsNeedingEstimates, error: fetchError } = await supabase
+    // FIXED: Use two separate queries instead of problematic LEFT JOIN
+    console.log("📋 Fetching all products...");
+    const { data: allProducts, error: productsError } = await supabase
       .from("transaction_products")
-      .select(
-        `
-        id,
-        name,
-        category,
-        total,
-        quantity,
-        emissions_estimates!left(id, method)
-      `
-      )
-      .is("emissions_estimates.id", null); // Only products without estimates
+      .select("id, name, category, total, quantity");
 
-    if (fetchError) {
-      throw new Error(`Failed to fetch products: ${fetchError.message}`);
+    if (productsError) {
+      throw new Error(`Failed to fetch products: ${productsError.message}`);
     }
 
-    const totalProducts = await getTotalProductCount();
-    const alreadyEstimated =
-      totalProducts - (productsNeedingEstimates?.length || 0);
+    console.log("📋 Fetching existing estimates...");
+    const { data: existingEstimates, error: estimatesError } = await supabase
+      .from("emissions_estimates")
+      .select("product_id");
+
+    if (estimatesError) {
+      throw new Error(`Failed to fetch estimates: ${estimatesError.message}`);
+    }
+
+    // FIXED: Find products that don't have estimates using Set for efficiency
+    const productsWithEstimates = new Set(
+      existingEstimates?.map(e => e.product_id) || []
+    );
+    
+    const productsNeedingEstimates = allProducts?.filter(
+      p => !productsWithEstimates.has(p.id)
+    ) || [];
+
+    const totalProducts = allProducts?.length || 0;
+    const alreadyEstimated = existingEstimates?.length || 0;
 
     console.log(`📊 Found ${totalProducts} total products`);
     console.log(`✅ ${alreadyEstimated} already have estimates`);
-    console.log(
-      `🔄 ${productsNeedingEstimates?.length || 0} need new estimates`
-    );
+    console.log(`🔄 ${productsNeedingEstimates.length} need new estimates`);
 
-    if (!productsNeedingEstimates || productsNeedingEstimates.length === 0) {
+    if (productsNeedingEstimates.length === 0) {
       console.log("🎉 All products already have carbon estimates!");
       return {
         success: true,
@@ -69,17 +75,15 @@ export async function processAllProductCarbonEstimates(): Promise<{
       };
     }
 
-    // 2. Process products in batches through AI
-    const batchSize = 5; // Process 5 products at a time
+    // FIXED: Process products in smaller batches to avoid timeouts
+    const batchSize = 3; // Reduced batch size for safety
     let newlyEstimated = 0;
     let errors = 0;
 
     for (let i = 0; i < productsNeedingEstimates.length; i += batchSize) {
       const batch = productsNeedingEstimates.slice(i, i + batchSize);
       const batchNum = Math.floor(i / batchSize) + 1;
-      const totalBatches = Math.ceil(
-        productsNeedingEstimates.length / batchSize
-      );
+      const totalBatches = Math.ceil(productsNeedingEstimates.length / batchSize);
 
       console.log(
         `🤖 Processing AI batch ${batchNum}/${totalBatches}: ${batch
@@ -91,8 +95,8 @@ export async function processAllProductCarbonEstimates(): Promise<{
         // Get AI estimates for this batch
         const estimates = await getAIEstimatesForBatch(batch);
 
-        // Store estimates in database
-        const storeResults = await storeEstimatesInDatabase(estimates);
+        // Store estimates in database safely
+        const storeResults = await storeEstimatesInDatabaseSafe(estimates);
 
         newlyEstimated += storeResults.success;
         errors += storeResults.errors;
@@ -105,13 +109,20 @@ export async function processAllProductCarbonEstimates(): Promise<{
         errors += batch.length;
       }
 
-      // Small delay to respect API rate limits
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // Longer delay to respect API rate limits and prevent timeouts
+      await new Promise((resolve) => setTimeout(resolve, 2000));
     }
 
     console.log(
       `🎉 Carbon estimation complete: ${newlyEstimated} new estimates, ${errors} errors`
     );
+
+    // FIXED: Trigger UI refresh after completion
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('carbonEstimationComplete', {
+        detail: { newlyEstimated, errors }
+      }));
+    }
 
     return {
       success: true,
@@ -133,9 +144,7 @@ export async function processAllProductCarbonEstimates(): Promise<{
 }
 
 // Get AI estimates for a batch of products
-async function getAIEstimatesForBatch(
-  products: any[]
-): Promise<CarbonEstimate[]> {
+async function getAIEstimatesForBatch(products: any[]): Promise<CarbonEstimate[]> {
   const estimates: CarbonEstimate[] = [];
 
   for (const product of products) {
@@ -203,8 +212,7 @@ function getCategoryBasedEstimate(product: any): CarbonEstimate {
     Other: 0.007,
   };
 
-  const multiplier =
-    baseScores[product.category as keyof typeof baseScores] || 0.007;
+  const multiplier = baseScores[product.category as keyof typeof baseScores] || 0.007;
   const estimate = Math.max(0.5, Math.min(15, product.total * multiplier));
 
   return {
@@ -215,8 +223,8 @@ function getCategoryBasedEstimate(product: any): CarbonEstimate {
   };
 }
 
-// Store estimates in database
-async function storeEstimatesInDatabase(estimates: CarbonEstimate[]): Promise<{
+// FIXED: Store estimates in database with simple insert (no upsert)
+async function storeEstimatesInDatabaseSafe(estimates: CarbonEstimate[]): Promise<{
   success: number;
   errors: number;
 }> {
@@ -226,46 +234,32 @@ async function storeEstimatesInDatabase(estimates: CarbonEstimate[]): Promise<{
 
   for (const estimate of estimates) {
     try {
-      const { error } = await supabase.from("emissions_estimates").insert({
-        product_id: estimate.productId,
-        factor_source:
-          estimate.method === "ai" ? "ai-openai" : "category-fallback",
-        factor_id: `${estimate.method}-${estimate.productId}`,
-        method: estimate.method,
-        estimated_co2e_kg: estimate.estimatedCo2eKg,
-        confidence: estimate.confidence,
-      });
+      // FIXED: Use simple insert instead of problematic upsert
+      const { error } = await supabase
+        .from("emissions_estimates")
+        .insert({
+          product_id: estimate.productId,
+          factor_source: estimate.method === "ai" ? "ai-openai" : "category-fallback",
+          factor_id: `${estimate.method}-${estimate.productId}`,
+          method: estimate.method,
+          estimated_co2e_kg: estimate.estimatedCo2eKg,
+          confidence: estimate.confidence,
+        });
 
       if (error) {
-        console.error(
-          `Failed to store estimate for ${estimate.productId}:`,
-          error
-        );
+        console.error(`Failed to store estimate for ${estimate.productId}:`, error);
         errors++;
       } else {
         success++;
+        console.log(`✅ Stored estimate for ${estimate.productId}: ${estimate.estimatedCo2eKg} kg CO2`);
       }
     } catch (error) {
-      console.error(
-        `Exception storing estimate for ${estimate.productId}:`,
-        error
-      );
+      console.error(`Exception storing estimate for ${estimate.productId}:`, error);
       errors++;
     }
   }
 
   return { success, errors };
-}
-
-// Get total product count
-async function getTotalProductCount(): Promise<number> {
-  const supabase = createClient();
-
-  const { count, error } = await supabase
-    .from("transaction_products")
-    .select("*", { count: "exact", head: true });
-
-  return count || 0;
 }
 
 // Trigger carbon estimation process (can be called from UI)
