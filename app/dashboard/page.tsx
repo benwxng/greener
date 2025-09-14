@@ -168,7 +168,7 @@ export default function DashboardPage() {
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Welcome back!</h1>
         <p className="text-muted-foreground">
-          Here&apos;s your carbon footprint overview based on your Amazon
+          Here&apos;s your carbon footprint overview based on your last
           purchases.
         </p>
       </div>
