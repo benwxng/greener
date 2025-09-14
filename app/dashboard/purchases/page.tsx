@@ -335,7 +335,7 @@ export default function PurchasesPage() {
                 </div>
 
                 {/* Carbon Score */}
-                <div className="text-center">
+                <div className="text-center min-w-[80px]">
                   <div
                     className={`text-lg font-bold ${getCarbonScoreColor(
                       purchase.carbonScore
@@ -348,20 +348,22 @@ export default function PurchasesPage() {
                 </div>
 
                 {/* Price & Actions */}
-                <div className="text-right space-y-2">
-                  <div className="text-lg font-bold">${purchase.amount}</div>
-                  <div className="flex flex-col space-y-1">
+                <div className="text-right min-w-[140px] space-y-3">
+                  <div className="text-lg font-bold">
+                    ${purchase.amount.toFixed(2)}
+                  </div>
+                  <div className="flex flex-col space-y-2">
                     <Button
                       variant="outline"
                       size="sm"
-                      className="transition-colors duration-150"
+                      className="w-full justify-center transition-colors duration-150"
                     >
                       {purchase.alternatives} Alternatives
                     </Button>
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="transition-colors duration-150"
+                      className="w-full justify-center transition-colors duration-150"
                     >
                       <ExternalLink className="h-3 w-3 mr-1" />
                       Details
