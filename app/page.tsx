@@ -7,6 +7,7 @@ import { hasEnvVars } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import { Leaf } from "lucide-react";
 
 export default async function Home() {
   const supabase = await createClient();
@@ -24,7 +25,7 @@ export default async function Home() {
         <nav className="w-full flex justify-center border-b border-b-foreground/10 h-16">
           <div className="w-full max-w-5xl flex justify-between items-center p-3 px-5 text-sm">
             <div className="flex gap-5 items-center font-semibold">
-              <Link href={"/"}>🌱 Greener</Link>
+              <Leaf href="/" className="h-8 w-8 text-green-600" />
               <div className="flex items-center gap-2">
                 <DeployButton />
               </div>

@@ -170,11 +170,15 @@ export default function DashboardLayout({
                 {!sidebarCollapsed && (
                   <div className="mb-3 p-3 bg-gray-50 dark:bg-gray-900 rounded-lg border">
                     <div className="text-center">
-                      <div className="text-xs text-muted-foreground mb-2">Powered by</div>
+                      <div className="text-xs text-muted-foreground mb-2">
+                        Powered by
+                      </div>
                       <div className="flex justify-center">
                         <KnotLogo size="sm" />
                       </div>
-                      <div className="text-xs text-muted-foreground mt-2">API</div>
+                      <div className="text-xs text-muted-foreground mt-2">
+                        API
+                      </div>
                     </div>
                   </div>
                 )}
